@@ -1,0 +1,5 @@
+type VaultDeposit @entity {
+  id: ID!
+  user: Bytes!
+  amount: BigInt!
+}
