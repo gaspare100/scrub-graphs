@@ -23,14 +23,6 @@ dataSources:
         - event: Deposit(indexed address,uint256)
           handler: handleNewDeposit
       file: ./src/mapping.ts
-  - kind: ethereum/contract
-    name: ERC20
-    network: kava
-    source:
-      address: '0x919C1c267BC06a7039e03fcc2eF738525769109c'
-      abi: ERC20
-      startBlock: 5679676
-    mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
