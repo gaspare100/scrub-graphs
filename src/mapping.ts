@@ -1,6 +1,6 @@
 import { Deposit } from "../generated/WindAndCheck/WindAndCheck";
 import { VaultDeposit } from "../generated/schema";
-export function handleNewDposit(event: Deposit): void {
+export function handleNewDeposit(event: Deposit): void {
   let vaultDeposit = new VaultDeposit(
     event.transaction.hash.toHex() + "-" + event.logIndex.toString()
   );
