@@ -9,6 +9,7 @@ dataSources:
     source:
       address: '0x1504B9EDdD57Ed8252b3b3b407DdE27B72A80790'
       abi: WindAndCheck
+      startBlock: 5679676
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -28,6 +29,7 @@ dataSources:
     source:
       address: '0x919C1c267BC06a7039e03fcc2eF738525769109c'
       abi: ERC20
+      startBlock: 5679676
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
