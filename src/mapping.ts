@@ -10,12 +10,3 @@ export function handleNewDeposit(event: Deposit): void {
   vaultDeposit.amount = event.params.amount;
   vaultDeposit.save();
 }
-
-export function handleNewTransfer(event: Transfer): void {
-  log.info("New transfer detected!", []);
-  let transfer = new TransferEntity(event.transaction.hash.toHex()+"-"+event.logIndex.toString());
-  transfer.from = event.params.from;
-  transfer.to = event.params.to;
-  transfer.amount = event.params.value;
-  transfer.save();
-}
