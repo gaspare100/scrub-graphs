@@ -1,11 +1,11 @@
 type VaultDeposit @entity {
-  id: Bytes!
+  id: String!
   user: Bytes!
   amount: BigInt!
 }
 
 type TransferEntity @entity {
-  id: Bytes!
+  id: String!
   from: Bytes!
   to: Bytes!
   amount: BigInt!

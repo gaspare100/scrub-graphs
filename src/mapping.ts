@@ -5,7 +5,7 @@ import { log } from "@graphprotocol/graph-ts";
 
 export function handleNewDeposit(event: Deposit): void {
   log.info("New deposit detected!", []);
-  let vaultDeposit = new VaultDeposit(event.transaction.hash);
+  let vaultDeposit = new VaultDeposit(event.transaction.hash.toHex()+"-"+event.logIndex.toString()));
   vaultDeposit.user = event.params.user;
   vaultDeposit.amount = event.params.amount;
   vaultDeposit.save();
@@ -13,7 +13,7 @@ export function handleNewDeposit(event: Deposit): void {
 
 export function handleNewTransfer(event: Transfer): void {
   log.info("New transfer detected!", []);
-  let transfer = new TransferEntity(event.transaction.hash);
+  let transfer = new TransferEntity(event.transaction.hash.toHex()+"-"+event.logIndex.toString()));
   transfer.from = event.params.from;
   transfer.to = event.params.to;
   transfer.amount = event.params.value;
