@@ -6,5 +6,6 @@ export function handleNewDposit(event: Deposit): void {
   );
   vaultDeposit.user = event.params.user;
   vaultDeposit.amount = event.params.amount;
+  console.log("New deposit: " + vaultDeposit.id);
   vaultDeposit.save();
 }
