@@ -1,6 +1,5 @@
 import { Deposit } from "../generated/WindAndCheck/WindAndCheck";
-import { Transfer } from "../generated/ERC20/ERC20";
-import { TransferEntity, VaultDeposit } from "../generated/schema";
+import {  VaultDeposit } from "../generated/schema";
 import { log } from "@graphprotocol/graph-ts";
 
 export function handleNewDeposit(event: Deposit): void {
