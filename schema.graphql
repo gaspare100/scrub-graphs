@@ -3,3 +3,10 @@ type VaultDeposit @entity {
   user: Bytes!
   amount: BigInt!
 }
+
+type TransferEntity @entity {
+  id: Bytes!
+  from: Bytes!
+  to: Bytes!
+  amount: BigInt!
+}
