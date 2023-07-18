@@ -18,7 +18,7 @@ dataSources:
       abis:
         - name: WindAndCheck
           file: ./abis/WindAndCheck.json
-      eventHandlers:
-        - event: Deposit(indexed address,uint256)
+      callHandlers:
+        - function: deposit(uin256)
           handler: handleNewDeposit
       file: ./src/mapping.ts
