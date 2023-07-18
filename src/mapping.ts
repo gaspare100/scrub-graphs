@@ -2,7 +2,7 @@ import { Deposit, DepositCall } from "../generated/WindAndCheck/WindAndCheck";
 import { VaultDeposit } from "../generated/schema";
 import { log } from "@graphprotocol/graph-ts";
 
-export function handleCreateGravatar(call: DepositCall): void {
+export function handleNewDeposit(call: DepositCall): void {
   log.info("New deposit detected!", []);
   let vaultDeposit = new VaultDeposit(call.transaction.hash);
 
