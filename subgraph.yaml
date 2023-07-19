@@ -4,12 +4,30 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: WindAndCheck
+    name: WindAndCheckAggregator
     network: kava
     source:
-      address: "0x1504B9EDdD57Ed8252b3b3b407DdE27B72A80790"
+      address: "0xaE0C5C2B81425b61C5b8D209431445Bdc662e86a"
+      abi: WindAndCheckAggregator
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mapping.ts
+      entities:
+        - Vault
+      abis:
+        - name: WindAndCheckAggregator
+          file: ./abis/WindAndCheckAggregator.json
+      eventHandlers:
+        - event: NewVault(indexed address,address,uint256,string)
+          handler: handleNewVault
+templates:
+  - name: WindAndCheck
+    kind: ethereum/contract
+    network: kava
+    source:
       abi: WindAndCheck
-      startBlock: 5679676
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
