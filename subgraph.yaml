@@ -29,7 +29,6 @@ templates:
     network: kava
     source:
       abi: WindAndCheck
-      startBlock: 5679676
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
