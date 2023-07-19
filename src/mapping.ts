@@ -38,8 +38,8 @@ export function handleNewWithdraw(event: Withdraw): void {
   vaultWithdraw.save();
   const vault = Vault.load(event.address.toHex());
   if (vault) {
-    vault?.tvl.minus(event.params.amount);
-    vault?.save();
+    vault.tvl.minus(event.params.amount);
+    vault.save();
   }
 }
 
