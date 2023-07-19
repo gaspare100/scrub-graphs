@@ -9,7 +9,7 @@ import {
   VaultReward,
   VaultWithdraw,
 } from "../generated/schema";
-import { log } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 
 export function handleNewDeposit(event: Deposit): void {
   log.info("New deposit detected!", []);
@@ -23,6 +23,11 @@ export function handleNewDeposit(event: Deposit): void {
   const vault = Vault.load(event.address.toHex());
   if (vault) {
     vault.tvl.plus(event.params.amount);
+    vault.save();
+  } else {
+    let vault = new Vault(event.address.toHex());
+    vault.tvl = event.params.amount;
+    vault.apr = BigInt.zero();
     vault.save();
   }
 }
@@ -40,6 +45,11 @@ export function handleNewWithdraw(event: Withdraw): void {
   if (vault) {
     vault.tvl.minus(event.params.amount);
     vault.save();
+  } else {
+    let vault = new Vault(event.address.toHex());
+    vault.tvl = event.params.amount;
+    vault.apr = BigInt.zero();
+    vault.save();
   }
 }
 
@@ -55,6 +65,11 @@ export function handleNewReward(event: RewardDistribution): void {
   const vault = Vault.load(event.address.toHex());
   if (vault) {
     vault.tvl.plus(event.params.amount);
+    vault.apr = event.params.apy;
+    vault.save();
+  } else {
+    let vault = new Vault(event.address.toHex());
+    vault.tvl = event.params.amount;
     vault.apr = event.params.apy;
     vault.save();
   }
