@@ -23,6 +23,9 @@ type Vault @entity{
   id: String!
   tvl: BigInt!
   apr: BigInt!
+  underlying: Bytes!
+  decimals: BigInt!
+  tokenName: String!
   deposits: [VaultDeposit!]! @derivedFrom(field: "vault")
   withdrawals: [VaultWithdraw!]! @derivedFrom(field: "vault")
 }

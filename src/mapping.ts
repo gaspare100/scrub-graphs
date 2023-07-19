@@ -4,6 +4,7 @@ import {
   WindAndCheck,
   Withdraw,
 } from "../generated/WindAndCheck/WindAndCheck";
+import { NewVault } from "../generated/WindAndCheckAggregator/WindAndCheckAggregator";
 import {
   Vault,
   VaultDeposit,
@@ -12,10 +13,14 @@ import {
 } from "../generated/schema";
 import { BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 
-export function newVault(address: Bytes, apr: BigInt, tvl: BigInt): void {
-  let vault = new Vault(address.toHex());
-  vault.apr = apr;
-  vault.tvl = tvl;
+export function handleNewVault(event: NewVault): void {
+  log.info("New vault detected!", []);
+  let vault = new Vault(event.params.vault.toHex());
+  vault.underlying = event.params.underlying;
+  vault.decimals = event.params.decimals;
+  vault.tvl = BigInt.fromI32(0);
+  vault.apr = BigInt.fromI32(0);
+  vault.tokenName = event.params.tokenName;
   vault.save();
 }
 
@@ -32,8 +37,6 @@ export function handleNewDeposit(event: Deposit): void {
   if (vault) {
     vault.tvl.plus(event.params.amount);
     vault.save();
-  } else {
-    newVault(event.address, BigInt.zero(), event.params.amount);
   }
 }
 
@@ -50,8 +53,6 @@ export function handleNewWithdraw(event: Withdraw): void {
   if (vault) {
     vault.tvl.minus(event.params.amount);
     vault.save();
-  } else {
-    newVault(event.address, BigInt.zero(), event.params.amount);
   }
 }
 
@@ -69,11 +70,5 @@ export function handleNewReward(event: RewardDistribution): void {
     vault.tvl.plus(event.params.amount);
     vault.apr = event.params.apy.div(BigInt.fromI32(1000));
     vault.save();
-  } else {
-    newVault(
-      event.address,
-      event.params.apy.div(BigInt.fromI32(1000)),
-      event.params.amount
-    );
   }
 }
