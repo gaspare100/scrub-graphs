@@ -1,5 +1,28 @@
 type VaultDeposit @entity {
   id: String!
+  vault: Vault!
   user: Bytes!
   amount: BigInt!
+}
+
+type VaultWithdraw @entity {
+  id: String!
+  vault: Vault!
+  user: Bytes!
+  amount: BigInt!
+}
+
+type VaultReward @entity {
+  id: String!
+  vault: Vault!
+  apr: BigInt!
+  reward: BigInt!
+}
+
+type Vault @entity{
+  id: String!
+  tvl: BigInt!
+  apr: BigInt!
+  deposits: [VaultDeposit!]! @derivedFrom(field: "vault")
+  withdrawals: [VaultWithdraw!]! @derivedFrom(field: "vault")
 }
