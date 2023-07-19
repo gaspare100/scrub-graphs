@@ -22,4 +22,8 @@ dataSources:
       eventHandlers:
         - event: Deposit(indexed address,uint256)
           handler: handleNewDeposit
+        - event: Withdraw(indexed address,uint256)
+          handler: handleNewWithdraw
+        - event: RewardDistribution(uint256,uint256)
+          handler: handleNewReward
       file: ./src/mapping.ts
