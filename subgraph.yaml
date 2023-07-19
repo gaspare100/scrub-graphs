@@ -34,6 +34,9 @@ templates:
       language: wasm/assemblyscript
       entities:
         - VaultDeposit
+        - VaultWithraw
+        - VaultReward
+        - Vault
       abis:
         - name: WindAndCheck
           file: ./abis/WindAndCheck.json

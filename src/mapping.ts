@@ -15,10 +15,10 @@ import { BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 
 export function handleNewVault(event: NewVault): void {
   log.info("New vault detected!", []);
-  if (Vault.load(event.params.vault.toHex())) {
-    return;
+  let vault = Vault.load(event.params.vault.toHex());
+  if (!vault) {
+    vault = new Vault(event.params.vault.toHex());
   }
-  let vault = new Vault(event.params.vault.toHex());
   vault.underlying = event.params.underlying;
   vault.decimals = event.params.decimals;
   vault.tvl = BigInt.fromI32(0);
