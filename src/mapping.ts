@@ -1,6 +1,7 @@
 import {
   Deposit,
   RewardDistribution,
+  WindAndCheck,
   Withdraw,
 } from "../generated/WindAndCheck/WindAndCheck";
 import {
@@ -9,7 +10,14 @@ import {
   VaultReward,
   VaultWithdraw,
 } from "../generated/schema";
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes, log } from "@graphprotocol/graph-ts";
+
+export function newVault(address: Bytes, apr: BigInt, tvl: BigInt): void {
+  let vault = new Vault(address.toHex());
+  vault.apr = apr;
+  vault.tvl = tvl;
+  vault.save();
+}
 
 export function handleNewDeposit(event: Deposit): void {
   log.info("New deposit detected!", []);
@@ -25,10 +33,7 @@ export function handleNewDeposit(event: Deposit): void {
     vault.tvl.plus(event.params.amount);
     vault.save();
   } else {
-    let vault = new Vault(event.address.toHex());
-    vault.tvl = event.params.amount;
-    vault.apr = BigInt.zero();
-    vault.save();
+    newVault(event.address, BigInt.zero(), event.params.amount);
   }
 }
 
@@ -46,10 +51,7 @@ export function handleNewWithdraw(event: Withdraw): void {
     vault.tvl.minus(event.params.amount);
     vault.save();
   } else {
-    let vault = new Vault(event.address.toHex());
-    vault.tvl = event.params.amount;
-    vault.apr = BigInt.zero();
-    vault.save();
+    newVault(event.address, BigInt.zero(), event.params.amount);
   }
 }
 
@@ -59,18 +61,19 @@ export function handleNewReward(event: RewardDistribution): void {
     event.transaction.hash.toHex() + "-" + event.logIndex.toString()
   );
   vaultReward.reward = event.params.amount;
-  vaultReward.apr = event.params.apy;
+  vaultReward.apr = event.params.apy.div(BigInt.fromI32(1000));
   vaultReward.vault = event.address.toHex();
   vaultReward.save();
   const vault = Vault.load(event.address.toHex());
   if (vault) {
     vault.tvl.plus(event.params.amount);
-    vault.apr = event.params.apy;
+    vault.apr = event.params.apy.div(BigInt.fromI32(1000));
     vault.save();
   } else {
-    let vault = new Vault(event.address.toHex());
-    vault.tvl = event.params.amount;
-    vault.apr = event.params.apy;
-    vault.save();
+    newVault(
+      event.address,
+      event.params.apy.div(BigInt.fromI32(1000)),
+      event.params.amount
+    );
   }
 }
