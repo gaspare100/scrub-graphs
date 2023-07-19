@@ -19,11 +19,12 @@ export function handleNewDeposit(event: Deposit): void {
   vaultDeposit.user = event.params.user;
   vaultDeposit.amount = event.params.amount;
   vaultDeposit.vault = event.address.toHex();
-  const vault = Vault.load(event.address.toHex());
-
-  vault?.tvl.plus(event.params.amount);
-  vault?.save();
   vaultDeposit.save();
+  const vault = Vault.load(event.address.toHex());
+  if (vault) {
+    vault.tvl.plus(event.params.amount);
+    vault.save();
+  }
 }
 
 export function handleNewWithdraw(event: Withdraw): void {
@@ -36,8 +37,10 @@ export function handleNewWithdraw(event: Withdraw): void {
   vaultWithdraw.vault = event.address.toHex();
   vaultWithdraw.save();
   const vault = Vault.load(event.address.toHex());
-  vault?.tvl.minus(event.params.amount);
-  vault?.save();
+  if (vault) {
+    vault?.tvl.minus(event.params.amount);
+    vault?.save();
+  }
 }
 
 export function handleNewReward(event: RewardDistribution): void {
