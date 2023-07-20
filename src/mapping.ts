@@ -45,14 +45,14 @@ export function handleNewDeposit(event: Deposit): void {
   vaultDeposit.user = event.params.user;
   vaultDeposit.amount = event.params.amount.div(
     BigInt.fromI32(context.getBigInt("decimals"))
-  );;
+  );
   vaultDeposit.vault = event.address.toHex();
   vaultDeposit.save();
   const vault = Vault.load(event.address.toHex());
   if (vault) {
-    vault.tvl.plus(event.params.amount.div(
-      BigInt.fromI32(context.getBigInt("decimals"))
-    ););
+    vault.tvl.plus(
+      event.params.amount.div(BigInt.fromI32(context.getBigInt("decimals")))
+    );
     vault.save();
   }
 }
@@ -67,14 +67,14 @@ export function handleNewWithdraw(event: Withdraw): void {
   vaultWithdraw.user = event.params.user;
   vaultWithdraw.amount = event.params.amount.div(
     BigInt.fromI32(context.getBigInt("decimals"))
-  );;
+  );
   vaultWithdraw.vault = event.address.toHex();
   vaultWithdraw.save();
   const vault = Vault.load(event.address.toHex());
   if (vault) {
-    vault.tvl.minus(event.params.amount.div(
-      BigInt.fromI32(context.getBigInt("decimals"))
-    ););
+    vault.tvl.minus(
+      event.params.amount.div(BigInt.fromI32(context.getBigInt("decimals")))
+    );
     vault.save();
   }
 }
@@ -95,9 +95,9 @@ export function handleNewReward(event: RewardDistribution): void {
   vaultReward.save();
   const vault = Vault.load(event.address.toHex());
   if (vault) {
-    vault.tvl.plus(event.params.amount.div(
-      BigInt.fromI32(context.getBigInt("decimals"))
-    ));
+    vault.tvl.plus(
+      event.params.amount.div(BigInt.fromI32(context.getBigInt("decimals")))
+    );
     vault.apr = event.params.apy.div(BigInt.fromI32(10000));
     vault.save();
   }
