@@ -57,7 +57,7 @@ export function handleNewDeposit(event: Deposit): void {
   );
   vaultDeposit.user = event.params.user;
   vaultDeposit.amount = event.params.amount.div(
-    BigInt.fromI32(10).pow(context.getBigInt("decimals"))
+    BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32())
   );
   vaultDeposit.vault = event.address.toHex();
   vaultDeposit.save();
@@ -65,7 +65,7 @@ export function handleNewDeposit(event: Deposit): void {
   if (vault) {
     vault.tvl.plus(
       event.params.amount.div(
-        BigInt.fromI32(10).pow(context.getBigInt("decimals"))
+        BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32())
       )
     );
     vault.save();
@@ -81,7 +81,7 @@ export function handleNewWithdraw(event: Withdraw): void {
   );
   vaultWithdraw.user = event.params.user;
   vaultWithdraw.amount = event.params.amount.div(
-    BigInt.fromI32(10).pow(context.getBigInt("decimals"))
+    BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32())
   );
   vaultWithdraw.vault = event.address.toHex();
   vaultWithdraw.save();
@@ -89,7 +89,7 @@ export function handleNewWithdraw(event: Withdraw): void {
   if (vault) {
     vault.tvl.minus(
       event.params.amount.div(
-        BigInt.fromI32(10).pow(context.getBigInt("decimals"))
+        BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32())
       )
     );
     vault.save();
@@ -105,7 +105,7 @@ export function handleNewReward(event: RewardDistribution): void {
   );
 
   vaultReward.reward = event.params.amount.div(
-    BigInt.fromI32(10).pow(context.getBigInt("decimals"))
+    BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32())
   );
   vaultReward.apr = event.params.apy.div(BigInt.fromI32(10000));
   vaultReward.vault = event.address.toHex();
@@ -114,7 +114,7 @@ export function handleNewReward(event: RewardDistribution): void {
   if (vault) {
     vault.tvl.plus(
       event.params.amount.div(
-        BigInt.fromI32(10).pow(context.getBigInt("decimals"))
+        BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32()
       )
     );
     vault.apr = event.params.apy.div(BigInt.fromI32(10000));
