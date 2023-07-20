@@ -17,6 +17,7 @@ type VaultReward @entity {
   vault: Vault!
   apr: BigInt!
   reward: BigInt!
+  timestamp: BigInt!
 }
 
 type Vault @entity{
