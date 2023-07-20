@@ -68,13 +68,13 @@ export function handleNewReward(event: RewardDistribution): void {
     event.transaction.hash.toHex() + "-" + event.logIndex.toString()
   );
   vaultReward.reward = event.params.amount;
-  vaultReward.apr = event.params.apy.div(BigInt.fromI32(1000));
+  vaultReward.apr = event.params.apy.div(BigInt.fromI32(10000));
   vaultReward.vault = event.address.toHex();
   vaultReward.save();
   const vault = Vault.load(event.address.toHex());
   if (vault) {
     vault.tvl.plus(event.params.amount);
-    vault.apr = event.params.apy.div(BigInt.fromI32(1000));
+    vault.apr = event.params.apy.div(BigInt.fromI32(10000));
     vault.save();
   }
 }
