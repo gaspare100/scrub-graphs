@@ -114,7 +114,7 @@ export function handleNewReward(event: RewardDistribution): void {
   if (vault) {
     vault.tvl.plus(
       event.params.amount.div(
-        BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32()
+        BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32())
       )
     );
     vault.apr = event.params.apy.div(BigInt.fromI32(10000));
