@@ -95,7 +95,9 @@ export function handleNewReward(event: RewardDistribution): void {
   vaultReward.save();
   const vault = Vault.load(event.address.toHex());
   if (vault) {
-    vault.tvl.plus(event.params.amount);
+    vault.tvl.plus(event.params.amount.div(
+      BigInt.fromI32(context.getBigInt("decimals"))
+    ));
     vault.apr = event.params.apy.div(BigInt.fromI32(10000));
     vault.save();
   }
