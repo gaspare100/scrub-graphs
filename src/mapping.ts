@@ -6,7 +6,10 @@ import {
 
 import { WindAndCheck } from "../generated/templates";
 
-import { NewVault } from "../generated/WindAndCheckAggregator/WindAndCheckAggregator";
+import {
+  NewVault,
+  UpdateVault,
+} from "../generated/WindAndCheckAggregator/WindAndCheckAggregator";
 import {
   Vault,
   VaultDeposit,
@@ -35,6 +38,16 @@ export function handleNewVault(event: NewVault): void {
   WindAndCheck.createWithContext(event.params.vault, context);
 }
 
+export function handleUpdateVault(event: UpdateVault): void {
+  log.info("Update vault detected!", []);
+  let vault = Vault.load(event.params.vault.toHex());
+  if (vault) {
+    vault.apr = event.params.apr.div(BigInt.fromI32(100000));
+    vault.tvl = event.params.tvl.div(BigInt.fromI32(10).pow(vault.decimals));
+    vault.save();
+  }
+}
+
 export function handleNewDeposit(event: Deposit): void {
   log.info("New deposit detected!", []);
   let context = dataSource.context();
@@ -44,14 +57,16 @@ export function handleNewDeposit(event: Deposit): void {
   );
   vaultDeposit.user = event.params.user;
   vaultDeposit.amount = event.params.amount.div(
-    BigInt.fromI32(context.getBigInt("decimals"))
+    BigInt.fromI32(10).pow(context.getBigInt("decimals"))
   );
   vaultDeposit.vault = event.address.toHex();
   vaultDeposit.save();
   const vault = Vault.load(event.address.toHex());
   if (vault) {
     vault.tvl.plus(
-      event.params.amount.div(BigInt.fromI32(context.getBigInt("decimals")))
+      event.params.amount.div(
+        BigInt.fromI32(10).pow(context.getBigInt("decimals"))
+      )
     );
     vault.save();
   }
@@ -66,14 +81,16 @@ export function handleNewWithdraw(event: Withdraw): void {
   );
   vaultWithdraw.user = event.params.user;
   vaultWithdraw.amount = event.params.amount.div(
-    BigInt.fromI32(context.getBigInt("decimals"))
+    BigInt.fromI32(10).pow(context.getBigInt("decimals"))
   );
   vaultWithdraw.vault = event.address.toHex();
   vaultWithdraw.save();
   const vault = Vault.load(event.address.toHex());
   if (vault) {
     vault.tvl.minus(
-      event.params.amount.div(BigInt.fromI32(context.getBigInt("decimals")))
+      event.params.amount.div(
+        BigInt.fromI32(10).pow(context.getBigInt("decimals"))
+      )
     );
     vault.save();
   }
@@ -88,7 +105,7 @@ export function handleNewReward(event: RewardDistribution): void {
   );
 
   vaultReward.reward = event.params.amount.div(
-    BigInt.fromI32(context.getBigInt("decimals"))
+    BigInt.fromI32(10).pow(context.getBigInt("decimals"))
   );
   vaultReward.apr = event.params.apy.div(BigInt.fromI32(10000));
   vaultReward.vault = event.address.toHex();
@@ -96,7 +113,9 @@ export function handleNewReward(event: RewardDistribution): void {
   const vault = Vault.load(event.address.toHex());
   if (vault) {
     vault.tvl.plus(
-      event.params.amount.div(BigInt.fromI32(context.getBigInt("decimals")))
+      event.params.amount.div(
+        BigInt.fromI32(10).pow(context.getBigInt("decimals"))
+      )
     );
     vault.apr = event.params.apy.div(BigInt.fromI32(10000));
     vault.save();
