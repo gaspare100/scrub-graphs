@@ -23,6 +23,8 @@ dataSources:
       eventHandlers:
         - event: NewVault(indexed address,address,uint256,string)
           handler: handleNewVault
+        - event: UpdateVault(indexed address,uint256,uint256)
+          handler: handleUpdateVault
 templates:
   - name: WindAndCheck
     kind: ethereum/contract
