@@ -28,4 +28,5 @@ type Vault @entity{
   tokenName: String!
   deposits: [VaultDeposit!]! @derivedFrom(field: "vault")
   withdrawals: [VaultWithdraw!]! @derivedFrom(field: "vault")
+  rewards: [VaultReward!]! @derivedFrom(field: "vault")
 }
