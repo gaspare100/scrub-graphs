@@ -111,6 +111,7 @@ export function handleNewReward(event: RewardDistribution): void {
   );
   vaultReward.apr = event.params.apy.div(BigInt.fromI32(10000));
   vaultReward.vault = event.address.toHex();
+  vaultReward.timestamp = event.block.timestamp;
   vaultReward.save();
   const vault = Vault.load(event.address.toHex());
   if (vault) {
