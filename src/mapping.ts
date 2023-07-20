@@ -1,9 +1,11 @@
 import {
   Deposit,
   RewardDistribution,
-  WindAndCheck,
   Withdraw,
 } from "../generated/WindAndCheck/WindAndCheck";
+
+import { WindAndCheck } from "../generated/templates";
+
 import { NewVault } from "../generated/WindAndCheckAggregator/WindAndCheckAggregator";
 import {
   Vault,
@@ -14,6 +16,7 @@ import {
 import { BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 
 export function handleNewVault(event: NewVault): void {
+  WindAndCheck.create(event.params.vault);
   log.info("New vault detected!", []);
   let vault = Vault.load(event.params.vault.toHex());
   if (!vault) {
