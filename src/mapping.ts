@@ -43,7 +43,9 @@ export function handleUpdateVault(event: UpdateVault): void {
   let vault = Vault.load(event.params.vault.toHex());
   if (vault) {
     vault.apr = event.params.apr.div(BigInt.fromI32(100000));
-    vault.tvl = event.params.tvl.div(BigInt.fromI32(10).pow(vault.decimals));
+    vault.tvl = event.params.tvl.div(
+      BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
+    );
     vault.save();
   }
 }
