@@ -46,6 +46,17 @@ export function handleUpdateVault(event: UpdateVault): void {
     vault.tvl = event.params.tvl.div(
       BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
     );
+    vault.totalSupplied = event.params.totalSupplied.div(
+      BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
+    );
+    vault.totalBorrowed = event.params.totalBorrowed.div(
+      BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
+    );
+    vault.totalBorrowable = event.params.totalBorrowable.div(
+      BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
+    );
+    vault.lastCompoundTimestamp = event.params.lastCompounTime;
+
     vault.save();
   }
 }
