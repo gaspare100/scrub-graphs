@@ -29,6 +29,10 @@ export function handleNewVault(event: NewVault): void {
   vault.decimals = event.params.decimals;
   vault.tvl = BigInt.fromI32(0);
   vault.apr = BigInt.fromI32(0);
+  vault.totalSupplied = BigInt.fromI32(0);
+  vault.totalBorrowed = BigInt.fromI32(0);
+  vault.totalBorrowable = BigInt.fromI32(0);
+  vault.lastCompoundTimestamp = BigInt.fromI32(0);
   vault.tokenName = event.params.tokenName;
   vault.save();
   let context = new DataSourceContext();
