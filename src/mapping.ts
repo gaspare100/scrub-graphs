@@ -111,6 +111,7 @@ export function handleNewWithdraw(event: Withdraw): void {
 
 export function handleNewReward(event: RewardDistribution): void {
   log.info("New reward detected!", []);
+  return;
   let context = dataSource.context();
 
   let vaultReward = new VaultReward(
