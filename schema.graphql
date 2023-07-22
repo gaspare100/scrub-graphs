@@ -24,6 +24,10 @@ type Vault @entity{
   id: String!
   tvl: BigInt!
   apr: BigInt!
+  totalSupplied: BigInt!
+  totalBorrowed: BigInt!
+  totalBorrowable: BigInt!
+  lastCompoundTimestamp: BigInt!
   underlying: Bytes!
   decimals: BigInt!
   tokenName: String!
