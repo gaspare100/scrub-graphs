@@ -13,6 +13,7 @@ import {
 import {
   Vault,
   VaultDeposit,
+  VaultInfo,
   VaultReward,
   VaultWithdraw,
 } from "../generated/schema";
@@ -23,18 +24,26 @@ export function handleNewVault(event: NewVault): void {
   log.info("New vault detected!", []);
   let vault = Vault.load(event.params.vault.toHex());
   if (!vault) {
-    vault = new Vault(event.params.vault.toHex());
+    vault = new Vault(event.params.vault.toHex()+);
   }
   vault.underlying = event.params.underlying;
   vault.decimals = event.params.decimals;
-  vault.tvl = BigInt.fromI32(0);
-  vault.apr = BigInt.fromI32(0);
-  vault.totalSupplied = BigInt.fromI32(0);
-  vault.totalBorrowed = BigInt.fromI32(0);
-  vault.totalBorrowable = BigInt.fromI32(0);
-  vault.lastCompoundTimestamp = BigInt.fromI32(0);
   vault.tokenName = event.params.tokenName;
   vault.save();
+  // create new info
+  const info = new VaultInfo(event.params.vault.toHex()+event.block.timestamp.toString());
+  info.vault = event.params.vault.toHex();
+  info.timestamp = event.block.timestamp;
+  
+
+  info.tvl = BigInt.fromI32(0);
+  info.apr = BigInt.fromI32(0);
+  info.totalSupplied = BigInt.fromI32(0);
+  info.totalBorrowed = BigInt.fromI32(0);
+  info.totalBorrowable = BigInt.fromI32(0);
+  info.lastCompoundTimestamp = BigInt.fromI32(0);
+  info.save();
+
   let context = new DataSourceContext();
   context.setBigInt("decimals", vault.decimals);
   context.setBytes("underlying", vault.underlying);
@@ -46,20 +55,23 @@ export function handleUpdateVault(event: UpdateVault): void {
   log.info("Update vault detected!", []);
   let vault = Vault.load(event.params.vault.toHex());
   if (vault) {
-    vault.apr = event.params.apr.div(BigInt.fromI32(100000));
-    vault.tvl = event.params.tvl.div(
+    const info  = new VaultInfo(event.params.vault.toHex()+event.block.timestamp.toString());
+    info.vault = event.params.vault.toHex();
+    info.timestamp = event.block.timestamp;
+    info.apr = event.params.apr.div(BigInt.fromI32(100000));
+    info.tvl = event.params.tvl.div(
       BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
     );
-    vault.totalSupplied = event.params.totalSupplied.div(
+    info.totalSupplied = event.params.totalSupplied.div(
       BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
     );
-    vault.totalBorrowed = event.params.totalBorrowed.div(
+    info.totalBorrowed = event.params.totalBorrowed.div(
       BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
     );
-    vault.totalBorrowable = event.params.totalBorrowable.div(
+    info.totalBorrowable = event.params.totalBorrowable.div(
       BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
     );
-    vault.lastCompoundTimestamp = event.params.lastCompounTime;
+    info.lastCompoundTimestamp = event.params.lastCompounTime;
 
     vault.save();
   }
@@ -78,15 +90,6 @@ export function handleNewDeposit(event: Deposit): void {
   );
   vaultDeposit.vault = event.address.toHex();
   vaultDeposit.save();
-  const vault = Vault.load(event.address.toHex());
-  if (vault) {
-    vault.tvl.plus(
-      event.params.amount.div(
-        BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32() as u8)
-      )
-    );
-    vault.save();
-  }
 }
 
 export function handleNewWithdraw(event: Withdraw): void {
@@ -102,15 +105,7 @@ export function handleNewWithdraw(event: Withdraw): void {
   );
   vaultWithdraw.vault = event.address.toHex();
   vaultWithdraw.save();
-  const vault = Vault.load(event.address.toHex());
-  if (vault) {
-    vault.tvl.minus(
-      event.params.amount.div(
-        BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32() as u8)
-      )
-    );
-    vault.save();
-  }
+ 
 }
 
 export function handleNewReward(event: RewardDistribution): void {
@@ -130,13 +125,5 @@ export function handleNewReward(event: RewardDistribution): void {
   vaultReward.timestamp = event.block.timestamp;
   vaultReward.save();
   const vault = Vault.load(event.address.toHex());
-  if (vault) {
-    vault.tvl.plus(
-      event.params.amount.div(
-        BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32() as u8)
-      )
-    );
-    vault.apr = event.params.apy.div(BigInt.fromI32(10000));
-    vault.save();
-  }
+  
 }
