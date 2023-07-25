@@ -32,11 +32,10 @@ export function handleNewVault(event: NewVault): void {
   vault.save();
   // create new info
   const info = new VaultInfo(
-    event.params.vault.toHex() + event.block.timestamp.toString()
+    event.params.vault.toHex() + "-" + event.block.timestamp.toString()
   );
   info.vault = event.params.vault.toHex();
   info.timestamp = event.block.timestamp;
-
   info.tvl = BigInt.fromI32(0);
   info.apr = BigInt.fromI32(0);
   info.totalSupplied = BigInt.fromI32(0);
@@ -57,7 +56,7 @@ export function handleUpdateVault(event: UpdateVault): void {
   let vault = Vault.load(event.params.vault.toHex());
   if (vault) {
     const info = new VaultInfo(
-      event.params.vault.toHex() + event.block.timestamp.toString()
+      event.params.vault.toHex() + "-" + event.block.timestamp.toString()
     );
     info.vault = event.params.vault.toHex();
     info.timestamp = event.block.timestamp;
@@ -76,7 +75,7 @@ export function handleUpdateVault(event: UpdateVault): void {
     );
     info.lastCompoundTimestamp = event.params.lastCompounTime;
 
-    vault.save();
+    info.save();
   }
 }
 
