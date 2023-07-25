@@ -24,17 +24,18 @@ export function handleNewVault(event: NewVault): void {
   log.info("New vault detected!", []);
   let vault = Vault.load(event.params.vault.toHex());
   if (!vault) {
-    vault = new Vault(event.params.vault.toHex()+);
+    vault = new Vault(event.params.vault.toHex());
   }
   vault.underlying = event.params.underlying;
   vault.decimals = event.params.decimals;
   vault.tokenName = event.params.tokenName;
   vault.save();
   // create new info
-  const info = new VaultInfo(event.params.vault.toHex()+event.block.timestamp.toString());
+  const info = new VaultInfo(
+    event.params.vault.toHex() + event.block.timestamp.toString()
+  );
   info.vault = event.params.vault.toHex();
   info.timestamp = event.block.timestamp;
-  
 
   info.tvl = BigInt.fromI32(0);
   info.apr = BigInt.fromI32(0);
@@ -55,7 +56,9 @@ export function handleUpdateVault(event: UpdateVault): void {
   log.info("Update vault detected!", []);
   let vault = Vault.load(event.params.vault.toHex());
   if (vault) {
-    const info  = new VaultInfo(event.params.vault.toHex()+event.block.timestamp.toString());
+    const info = new VaultInfo(
+      event.params.vault.toHex() + event.block.timestamp.toString()
+    );
     info.vault = event.params.vault.toHex();
     info.timestamp = event.block.timestamp;
     info.apr = event.params.apr.div(BigInt.fromI32(100000));
@@ -105,7 +108,6 @@ export function handleNewWithdraw(event: Withdraw): void {
   );
   vaultWithdraw.vault = event.address.toHex();
   vaultWithdraw.save();
- 
 }
 
 export function handleNewReward(event: RewardDistribution): void {
@@ -125,5 +127,4 @@ export function handleNewReward(event: RewardDistribution): void {
   vaultReward.timestamp = event.block.timestamp;
   vaultReward.save();
   const vault = Vault.load(event.address.toHex());
-  
 }
