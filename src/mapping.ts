@@ -60,7 +60,7 @@ export function handleUpdateVault(event: UpdateVault): void {
     );
     info.vault = event.params.vault.toHex();
     info.timestamp = event.block.timestamp;
-    info.apr = event.params.apr.div(BigInt.fromI32(100000));
+    info.apr = event.params.apr.div(BigInt.fromI32(10000));
     info.tvl = event.params.tvl.div(
       BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
     );
