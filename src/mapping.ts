@@ -31,7 +31,6 @@ export function handleNewVault(event: NewVault): void {
   vault.tokenName = event.params.tokenName;
   vault.save();
 
-
   let context = new DataSourceContext();
   context.setBigInt("decimals", vault.decimals);
   context.setBytes("underlying", vault.underlying);
@@ -49,18 +48,10 @@ export function handleUpdateVault(event: UpdateVault): void {
     info.vault = event.params.vault.toHex();
     info.timestamp = event.block.timestamp;
     info.apr = event.params.apr.div(BigInt.fromI32(10000));
-    info.tvl = event.params.tvl.div(
-      BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
-    );
-    info.totalSupplied = event.params.totalSupplied.div(
-      BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
-    );
-    info.totalBorrowed = event.params.totalBorrowed.div(
-      BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
-    );
-    info.totalBorrowable = event.params.totalBorrowable.div(
-      BigInt.fromI32(10).pow(vault.decimals.toI32() as u8)
-    );
+    info.tvl = event.params.tvl;
+    info.totalSupplied = event.params.totalSupplied;
+    info.totalBorrowed = event.params.totalBorrowed;
+    info.totalBorrowable = event.params.totalBorrowable;
     info.lastCompoundTimestamp = event.params.lastCompounTime;
 
     info.save();
