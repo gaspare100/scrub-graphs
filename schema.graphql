@@ -3,6 +3,7 @@ type VaultDeposit @entity {
   vault: Vault!
   user: Bytes!
   amount: BigInt!
+  timestamp: BigInt!
 }
 
 type VaultWithdraw @entity {
@@ -10,6 +11,7 @@ type VaultWithdraw @entity {
   vault: Vault!
   user: Bytes!
   amount: BigInt!
+  timestamp: BigInt!
 }
 
 type VaultReward @entity {
