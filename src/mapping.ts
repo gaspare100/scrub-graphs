@@ -69,6 +69,7 @@ export function handleNewDeposit(event: Deposit): void {
   vaultDeposit.amount = event.params.amount.div(
     BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32() as u8)
   );
+  vaultDeposit.timestamp = event.block.timestamp;
   vaultDeposit.vault = event.address.toHex();
   vaultDeposit.save();
 }
@@ -84,6 +85,7 @@ export function handleNewWithdraw(event: Withdraw): void {
   vaultWithdraw.amount = event.params.amount.div(
     BigInt.fromI32(10).pow(context.getBigInt("decimals").toI32() as u8)
   );
+  vaultWithdraw.timestamp = event.block.timestamp;
   vaultWithdraw.vault = event.address.toHex();
   vaultWithdraw.save();
 }
