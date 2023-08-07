@@ -3,8 +3,6 @@ import {
   RewardDistribution,
   Withdraw,
 } from "../generated/WindAndCheck/WindAndCheck";
-import { Create_lockCall } from "../generated/VotingEscrow/VotingEscrow";
-import { VoteCall } from "../generated/Voter/Voter";
 
 import { WindAndCheck } from "../generated/templates";
 
