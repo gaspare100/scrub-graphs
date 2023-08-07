@@ -6,7 +6,7 @@ import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 
 export function handleNewLock(event: Deposit): void {
   log.info("New lock detected!", []);
-  if (Lock.load(event.params.tokenId.toString()) != null) {
+  if (Lock.load(event.params.tokenId.toString()) == null) {
     let newLock = new Lock(event.params.tokenId.toString());
     newLock.nftID = event.params.tokenId;
     newLock.user = event.transaction.from;
