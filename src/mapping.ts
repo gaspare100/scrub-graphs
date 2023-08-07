@@ -115,12 +115,7 @@ export function handleNewReward(event: RewardDistribution): void {
 
 export function handleNewLock(call: Create_lockCall) {
   log.info("New lock detected!", []);
-  let newLock = new Lock(call.outputs.value0.toString());
-  newLock.nftID = call.outputs.value0;
-  newLock.user = call.from;
-  newLock.amount = call.inputs._value;
-  newLock.timestamp = call.block.timestamp;
-  newLock.save();
+  
 }
 
 export function handleNewVote(call: VoteCall) {
