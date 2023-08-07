@@ -146,11 +146,7 @@ export function handleNewVote(call: VoteCall) {
       );
 
       newVote.nftID = call.inputs.tokenId;
-      newVote.user = call.from;
-      newVote.pool = call.inputs._poolVote[i];
-      newVote.amount = call.inputs._weights[i]
-        .times(lock?.amount)
-        .div(totalWeight);
+
       newVote.save();
     }
   } else {
