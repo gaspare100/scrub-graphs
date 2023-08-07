@@ -130,10 +130,10 @@ export function handleNewVote(call: VoteCall) {
   );
 
   if (lock != null) {
-    const totalWeight = call.inputs._weights.reduce(
-      (a, b) => a.plus(b),
-      BigInt.fromI32(0)
-    );
+    let totalWeight = BigInt.fromI32(0);
+    for (let i = 0; i < call.inputs._weights.length; i++) {
+      totalWeight = totalWeight.plus(call.inputs._weights[i]);
+    }
     for (let i = 0; i < call.inputs._poolVote.length; i++) {
       let newVote = new Vote(
         call.inputs.tokenId +
@@ -149,7 +149,7 @@ export function handleNewVote(call: VoteCall) {
       newVote.user = call.from;
       newVote.pool = call.inputs._poolVote[i];
       newVote.amount = call.inputs._weights[i]
-        .times(lock.amount)
+        .times(lock?.amount)
         .div(totalWeight);
       newVote.save();
     }
