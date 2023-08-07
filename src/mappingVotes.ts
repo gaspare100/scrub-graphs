@@ -33,9 +33,9 @@ export function handleNewVote(event: Voted): void {
     let voter = Voter.bind(event.address);
     let votes = voter.votes(
       event.params.tokenId,
-      Address.fromString("0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25")
+      Address.fromHexString("0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25")
     );
-    newVote.pool = Address.fromString(
+    newVote.pool = Address.fromHexString(
       "0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25"
     );
     newVote.amount = votes;
