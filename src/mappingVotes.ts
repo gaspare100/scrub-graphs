@@ -16,7 +16,7 @@ export function handleNewLock(call: Create_lockCall): void {
 
 export function handleNewVote(call: VoteCall): void {
   log.info("New vote detected!", []);
-  /*
+  
   let lock = Lock.load(
     call.inputs.tokenId + "-" + call.transaction.hash.toHex()
   );
@@ -26,6 +26,7 @@ export function handleNewVote(call: VoteCall): void {
     for (let i = 0; i < call.inputs._weights.length; i++) {
       totalWeight = totalWeight.plus(call.inputs._weights[i]);
     }
+    /*
     for (let i = 0; i < call.inputs._poolVote.length; i++) {
       let newVote = new Vote(
         call.inputs.tokenId +
@@ -46,8 +47,9 @@ export function handleNewVote(call: VoteCall): void {
       newVote.timestamp = call.block.timestamp;
       newVote.save();
     }
+    */
   } else {
     log.info("Lock not found! Not tracking", []);
   }
-  */
+  
 }
