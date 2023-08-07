@@ -1,51 +1,46 @@
-import { Create_lockCall } from "../generated/VotingEscrow/VotingEscrow";
-import { VoteCall } from "../generated/Voter/Voter";
+import { Deposit } from "../generated/VotingEscrow/VotingEscrow";
+import { Voted, Voter } from "../generated/Voter/Voter";
 
 import { Lock, Vote } from "../generated/schema";
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, log } from "@graphprotocol/graph-ts";
 
-export function handleNewLock(call: Create_lockCall): void {
+export function handleNewLock(event: Deposit): void {
   log.info("New lock detected!", []);
-  let newLock = new Lock(call.outputs.value0.toString());
-  newLock.nftID = call.outputs.value0;
-  newLock.user = call.from;
-  newLock.amount = call.inputs._value;
-  newLock.timestamp = call.block.timestamp;
-  newLock.save();
+  if (Lock.load(event.params.tokenId.toString()) != null) {
+    let newLock = new Lock(event.params.tokenId.toString());
+    newLock.nftID = event.params.tokenId;
+    newLock.user = event.transaction.from;
+    newLock.amount = event.params.value;
+    newLock.timestamp = event.block.timestamp;
+    newLock.save();
+  }
 }
 
-export function handleNewVote(call: VoteCall): void {
+export function handleNewVote(event: Voted): void {
   log.info("New vote detected!", []);
 
   let lock = Lock.load(
-    call.inputs.tokenId.toString() + "-" + call.transaction.hash.toHex()
+    event.params.tokenId.toString() + "-" + event.transaction.hash.toHex()
   );
 
   if (lock != null) {
-    let totalWeight = BigInt.fromI32(0);
-    for (let i = 0; i < call.inputs._weights.length; i++) {
-      totalWeight = totalWeight.plus(call.inputs._weights[i]);
-    }
+    let newVote = new Vote(
+      event.params.tokenId.toString() + "-" + event.transaction.hash.toHex()
+    );
 
-    for (let i = 0; i < call.inputs._poolVote.length; i++) {
-      let newVote = new Vote(
-        call.inputs.tokenId.toString() +
-          "-" +
-          call.inputs._poolVote[i].toHex() +
-          "-" +
-          call.transaction.hash.toHex() +
-          "-"
-      );
-
-      newVote.nftID = call.inputs.tokenId;
-      newVote.user = call.from;
-      newVote.pool = call.inputs._poolVote[i];
-      newVote.amount = call.inputs._weights[i]
-        .times(lock.amount)
-        .div(totalWeight);
-      newVote.timestamp = call.block.timestamp;
-      newVote.save();
-    }
+    newVote.nftID = event.params.tokenId;
+    newVote.user = event.transaction.from;
+    let voter = Voter.bind(event.address);
+    let votes = voter.votes(
+      event.params.tokenId,
+      Address.fromString("0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25")
+    );
+    newVote.pool = Address.fromString(
+      "0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25"
+    );
+    newVote.amount = votes;
+    newVote.timestamp = event.block.timestamp;
+    newVote.save();
   } else {
     log.info("Lock not found! Not tracking", []);
   }
