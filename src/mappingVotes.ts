@@ -31,7 +31,7 @@ export function handleNewVote(call: VoteCall): void {
       let newVote = new Vote(
         call.inputs.tokenId.toString() +
           "-" +
-          call.inputs._poolVote[i] +
+          call.inputs._poolVote[i].toHex() +
           "-" +
           call.transaction.hash.toHex() +
           "-"
