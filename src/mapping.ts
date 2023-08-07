@@ -125,7 +125,7 @@ export function handleNewLock(call: Create_lockCall) {
 
 export function handleNewVote(call: VoteCall) {
   log.info("New vote detected!", []);
-  const lock = Lock.load(
+  let lock = Lock.load(
     call.inputs.tokenId + "-" + call.transaction.hash.toHex()
   );
 
