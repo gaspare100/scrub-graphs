@@ -44,3 +44,20 @@ type Vault @entity {
   withdrawals: [VaultWithdraw!]! @derivedFrom(field: "vault")
   rewards: [VaultReward!]! @derivedFrom(field: "vault")
 }
+
+type Lock @entity {
+  id: String!
+  nftID: BigInt!
+  user: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+}
+
+type Vote @entity {
+  id: String!
+  user: Bytes!
+  nftID: BigInt!
+  amount: BigInt!
+  pool: Bytes!
+  timestamp: BigInt!
+}

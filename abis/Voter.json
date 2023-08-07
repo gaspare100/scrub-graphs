@@ -1,0 +1,13 @@
+[
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [],
+    "name": "vote",
+    "inputs": [
+      { "type": "uint256", "name": "tokenId", "internalType": "uint256" },
+      { "type": "address[]", "name": "_poolVote", "internalType": "address[]" },
+      { "type": "uint256[]", "name": "_weights", "internalType": "uint256[]" }
+    ]
+  }
+]

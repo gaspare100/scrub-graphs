@@ -3,6 +3,8 @@ import {
   RewardDistribution,
   Withdraw,
 } from "../generated/WindAndCheck/WindAndCheck";
+import { Create_lockCall } from "../generated/VotingEscrow/VotingEscrow";
+import { VoteCall } from "../generated/Voter/Voter";
 
 import { WindAndCheck } from "../generated/templates";
 
@@ -11,11 +13,13 @@ import {
   UpdateVault,
 } from "../generated/WindAndCheckAggregator/WindAndCheckAggregator";
 import {
+  Lock,
   Vault,
   VaultDeposit,
   VaultInfo,
   VaultReward,
   VaultWithdraw,
+  Vote,
 } from "../generated/schema";
 import { BigInt, Bytes, DataSourceContext, log } from "@graphprotocol/graph-ts";
 import { dataSource } from "@graphprotocol/graph-ts";
@@ -107,4 +111,49 @@ export function handleNewReward(event: RewardDistribution): void {
   vaultReward.timestamp = event.block.timestamp;
   vaultReward.save();
   const vault = Vault.load(event.address.toHex());
+}
+
+export function handleNewLock(call: Create_lockCall) {
+  log.info("New lock detected!", []);
+  let newLock = new Lock(call.outputs.value0.toString());
+  newLock.nftID = call.outputs.value0;
+  newLock.user = call.from;
+  newLock.amount = call.inputs._value;
+  newLock.timestamp = call.block.timestamp;
+  newLock.save();
+}
+
+export function handleNewVote(call: VoteCall) {
+  log.info("New vote detected!", []);
+  const lock = Lock.load(
+    call.inputs.tokenId + "-" + call.transaction.hash.toHex()
+  );
+
+  if (lock != null) {
+    const totalWeight = call.inputs._weights.reduce(
+      (a, b) => a.plus(b),
+      BigInt.fromI32(0)
+    );
+    for (let i = 0; i < call.inputs._poolVote.length; i++) {
+      let newVote = new Vote(
+        call.inputs.tokenId +
+          "-" +
+          call.inputs._poolVote[i] +
+          "-" +
+          call.transaction.hash.toHex() +
+          "-" +
+          i
+      );
+
+      newVote.nftID = call.inputs.tokenId;
+      newVote.user = call.from;
+      newVote.pool = call.inputs._poolVote[i];
+      newVote.amount = call.inputs._weights[i]
+        .times(lock.amount)
+        .div(totalWeight);
+      newVote.save();
+    }
+  } else {
+    log.info("Lock not found! Not tracking", []);
+  }
 }
