@@ -26,10 +26,10 @@ export function handleNewVote(call: VoteCall): void {
     for (let i = 0; i < call.inputs._weights.length; i++) {
       totalWeight = totalWeight.plus(call.inputs._weights[i]);
     }
-    /*
+
     for (let i = 0; i < call.inputs._poolVote.length; i++) {
       let newVote = new Vote(
-        call.inputs.tokenId +
+        call.inputs.tokenId.toString() +
           "-" +
           call.inputs._poolVote[i] +
           "-" +
@@ -47,7 +47,6 @@ export function handleNewVote(call: VoteCall): void {
       newVote.timestamp = call.block.timestamp;
       newVote.save();
     }
-    */
   } else {
     log.info("Lock not found! Not tracking", []);
   }
