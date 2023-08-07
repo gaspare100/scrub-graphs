@@ -24,7 +24,6 @@ export function handleNewVote(call: VoteCall): void {
   if (lock != null) {
     let totalWeight = BigInt.fromI32(0);
     for (let i = 0; i < call.inputs._weights.length; i++) {
-      totalWeight = totalWeight.plus(call.inputs._weights[i]);
     }
     /*
     for (let i = 0; i < call.inputs._poolVote.length; i++) {
