@@ -1,12 +1,64 @@
 [
   {
-    "type": "function",
-    "stateMutability": "nonpayable",
-    "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }],
-    "name": "create_lock",
+    "type": "event",
+    "name": "Deposit",
     "inputs": [
-      { "type": "uint256", "name": "_value", "internalType": "uint256" },
-      { "type": "uint256", "name": "_lock_duration", "internalType": "uint256" }
-    ]
+      {
+        "type": "address",
+        "name": "provider",
+        "internalType": "address",
+        "indexed": true
+      },
+      {
+        "type": "uint256",
+        "name": "tokenId",
+        "internalType": "uint256",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "value",
+        "internalType": "uint256",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "locktime",
+        "internalType": "uint256",
+        "indexed": true
+      },
+      {
+        "type": "uint8",
+        "name": "deposit_type",
+        "internalType": "enum VotingEscrow.DepositType",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "ts",
+        "internalType": "uint256",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Supply",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "prevSupply",
+        "internalType": "uint256",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "supply",
+        "internalType": "uint256",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
   }
 ]
