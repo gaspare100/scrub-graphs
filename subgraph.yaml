@@ -25,6 +25,46 @@ dataSources:
           handler: handleNewVault
         - event: UpdateVault(indexed address,uint256,uint256,uint256,uint256,uint256,uint256)
           handler: handleUpdateVault
+  - kind: ethereum/contract
+    name: Voter
+    network: kava
+    source:
+      address: "0x4eB2B9768da9Ea26E3aBe605c9040bC12F236a59"
+      abi: Voter
+      startBlock: 5679676
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mapping.ts
+      entities:
+        - Vote
+      abis:
+        - name: Voter
+          file: ./abis/Voter.json
+      callHandlers:
+        - function: vote(uint256,address[],uint256[])
+          handler: handleNewVote
+  - kind: ethereum/contract
+    name: VotingEscrow
+    network: kava
+    source:
+      address: "0x35361C9c2a324F5FB8f3aed2d7bA91CE1410893A"
+      abi: VotingEscrow
+      startBlock: 5679676
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mapping.ts
+      entities:
+        - Lock
+      abis:
+        - name: VotingEscrow
+          file: ./abis/VotingEscrow.json
+      callHandlers:
+        - function: create_lock(uint256,uint256)
+          handler: handleNewLock
 templates:
   - name: WindAndCheck
     kind: ethereum/contract
