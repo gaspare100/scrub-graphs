@@ -2,7 +2,7 @@ import { Deposit } from "../generated/VotingEscrow/VotingEscrow";
 import { Voted, Voter } from "../generated/Voter/Voter";
 
 import { Lock, Vote } from "../generated/schema";
-import { Address, BigInt, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 
 export function handleNewLock(event: Deposit): void {
   log.info("New lock detected!", []);
@@ -31,10 +31,12 @@ export function handleNewVote(event: Voted): void {
     let voter = Voter.bind(event.address);
     let votes = voter.votes(
       event.params.tokenId,
-      Address.fromHexString("0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25")
+      Address.fromBytes(
+        Bytes.fromHexString("0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25")
+      )
     );
-    newVote.pool = Address.fromHexString(
-      "0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25"
+    newVote.pool = Address.fromBytes(
+      Bytes.fromHexString("0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25")
     );
     newVote.amount = votes;
     newVote.timestamp = event.block.timestamp;
