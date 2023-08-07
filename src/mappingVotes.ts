@@ -22,6 +22,7 @@ export function handleNewVote(event: Voted): void {
   let lock = Lock.load(event.params.tokenId.toString());
 
   if (lock != null) {
+    log.info("Lock Found !", []);
     let newVote = new Vote(
       event.params.tokenId.toString() + "-" + event.transaction.hash.toHex()
     );
