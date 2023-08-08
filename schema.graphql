@@ -50,6 +50,7 @@ type Lock @entity {
   nftID: BigInt!
   user: Bytes!
   amount: BigInt!
+  tx: Bytes!
   timestamp: BigInt!
 }
 
