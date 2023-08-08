@@ -14,6 +14,7 @@ export function handleNewLock(event: Deposit): void {
     newLock.nftID = event.params.tokenId;
     newLock.user = event.transaction.from;
     newLock.amount = event.params.value;
+    newLock.tx = event.transaction.hash;
     newLock.timestamp = event.block.timestamp;
     newLock.save();
   }
