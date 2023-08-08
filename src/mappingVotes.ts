@@ -24,6 +24,9 @@ export function handleNewLock(event: Deposit): void {
     BigInt.fromI32(4).equals(BigInt.fromI32(event.params.deposit_type))
   ) {
     lock.merged = true;
+    lock.amount = lock.amount.plus(
+      event.params.value.div(BigInt.fromI32(10).pow(18))
+    );
   }
 }
 
