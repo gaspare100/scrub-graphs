@@ -52,6 +52,7 @@ type Lock @entity {
   amount: BigInt!
   tx: Bytes!
   timestamp: BigInt!
+  merged: Boolean!
 }
 
 type Vote @entity {
