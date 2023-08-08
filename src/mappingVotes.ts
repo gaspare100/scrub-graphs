@@ -6,8 +6,10 @@ import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 
 export function handleNewLock(event: Deposit): void {
   log.info("New lock detected!", []);
+  let lock = Lock.load(event.params.tokenId.toString());
+
   if (
-    Lock.load(event.params.tokenId.toString()) == null &&
+    lock == null &&
     BigInt.fromI32(1).equals(BigInt.fromI32(event.params.deposit_type))
   ) {
     let newLock = new Lock(event.params.tokenId.toString());
@@ -17,6 +19,11 @@ export function handleNewLock(event: Deposit): void {
     newLock.tx = event.transaction.hash;
     newLock.timestamp = event.block.timestamp;
     newLock.save();
+  } else if (
+    lock != null &&
+    BigInt.fromI32(4).equals(BigInt.fromI32(event.params.deposit_type))
+  ) {
+    lock.merged = true;
   }
 }
 
