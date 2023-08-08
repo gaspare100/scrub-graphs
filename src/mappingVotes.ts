@@ -8,7 +8,7 @@ export function handleNewLock(event: Deposit): void {
   log.info("New lock detected!", []);
   if (
     Lock.load(event.params.tokenId.toString()) == null &&
-    BigInt.fromI32(1).equals(event.params.deposit_type)
+    BigInt.fromI32(1).equals(BigInt.fromI32(event.params.deposit_type))
   ) {
     let newLock = new Lock(event.params.tokenId.toString());
     newLock.nftID = event.params.tokenId;
