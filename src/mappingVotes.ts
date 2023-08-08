@@ -41,6 +41,6 @@ export function handleNewVote(event: Voted): void {
   );
   newVote.amount = votes;
   newVote.timestamp = event.block.timestamp;
-  newVote.lock = lock;
+  newVote.lock = lock?.id ?? "";
   newVote.save();
 }
