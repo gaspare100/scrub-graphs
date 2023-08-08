@@ -13,7 +13,7 @@ export function handleNewLock(event: Deposit): void {
     let newLock = new Lock(event.params.tokenId.toString());
     newLock.nftID = event.params.tokenId;
     newLock.user = event.transaction.from;
-    newLock.amount = event.params.value;
+    newLock.amount = event.params.value.div(BigInt.fromI32(10).pow(18));
     newLock.tx = event.transaction.hash;
     newLock.timestamp = event.block.timestamp;
     newLock.save();
@@ -40,7 +40,7 @@ export function handleNewVote(event: Voted): void {
   newVote.pool = Address.fromBytes(
     Bytes.fromHexString("0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25")
   );
-  newVote.amount = votes;
+  newVote.amount = votes.div(BigInt.fromI32(10).pow(18));
   newVote.timestamp = event.block.timestamp;
   newVote.lock = lock ? lock.id : "";
   newVote.save();
