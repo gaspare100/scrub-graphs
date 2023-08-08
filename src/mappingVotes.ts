@@ -23,10 +23,13 @@ export function handleNewLock(event: Deposit): void {
     lock != null &&
     BigInt.fromI32(4).equals(BigInt.fromI32(event.params.deposit_type))
   ) {
+    log.info("Lock {} merged!", [event.params.tokenId.toString()]);
     lock.merged = true;
     lock.amount = lock.amount.plus(
       event.params.value.div(BigInt.fromI32(10).pow(18))
     );
+    lock.save();
+
   }
 }
 
