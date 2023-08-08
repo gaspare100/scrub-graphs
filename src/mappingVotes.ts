@@ -18,6 +18,7 @@ export function handleNewLock(event: Deposit): void {
     newLock.amount = event.params.value.div(BigInt.fromI32(10).pow(18));
     newLock.tx = event.transaction.hash;
     newLock.timestamp = event.block.timestamp;
+    newLock.merged = false;
     newLock.save();
   } else if (
     lock != null &&
