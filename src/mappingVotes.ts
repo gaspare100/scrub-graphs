@@ -22,6 +22,8 @@ export function handleNewLock(event: Deposit): void {
 export function handleNewVote(event: Voted): void {
   log.info("New vote detected!", []);
 
+  let lock = Lock.load(event.params.tokenId.toString());
+
   let newVote = new Vote(
     event.params.tokenId.toString() + "-" + event.transaction.hash.toHex()
   );
@@ -39,5 +41,6 @@ export function handleNewVote(event: Voted): void {
   );
   newVote.amount = votes;
   newVote.timestamp = event.block.timestamp;
+  newVote.lock = lock;
   newVote.save();
 }

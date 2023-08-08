@@ -60,5 +60,5 @@ type Vote @entity {
   amount: BigInt!
   pool: Bytes!
   timestamp: BigInt!
-  lock: Lock! @derivedFrom(field: "nftID")
+  lock: Lock
 }
