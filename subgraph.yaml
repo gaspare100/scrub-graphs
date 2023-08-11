@@ -65,6 +65,36 @@ dataSources:
       eventHandlers:
         - event: Voted(indexed address,uint256,uint256)
           handler: handleNewVote
+  - kind: ethereum/contract
+    name: EventCenter
+    network: kava
+    source:
+      address: "0xa07deE8FF35fE2e2961a7e1006EAdA98E24aE82E"
+      abi: EventCenter
+      startBlock: 5679676
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappingCompetitions.ts
+      entities:
+        - Competition, Bet, MatchedBet
+      abis:
+        - name: EventCenter
+          file: ./abis/EventCenter.json
+      eventHandlers:
+        - event: NewMatch(address)
+          handler: handleNewMatch
+        - event: MatchClosed(address)
+          handler: handleMatchClosed
+        - event: MatchSettled(address)
+          handler: handleMatchSettled
+        - event: MatchedBet(address,uint256,uint256,uint256,uint256,address)
+          handler: handleMatchedBet
+        - event: UnmatchedBet(address,uint256,uint256,uint256)
+          handler: handleUnmatchedBet
+        - event: CancelledBet(address,uint256,uint256)
+          handler: handleCancelledBet
 templates:
   - name: WindAndCheck
     kind: ethereum/contract
