@@ -64,3 +64,47 @@ type Vote @entity {
   timestamp: BigInt!
   lock: Lock
 }
+
+type Competition @entity {
+  id: String!
+  matchId: BigInt!
+  openStatus: Boolean!
+  host: BigInt!
+  guest: BigInt!
+  result: BigInt!
+  currentBetId: BigInt!
+  totalAmountMatchedEffective: BigInt!
+  competitionPendingAmount: BigInt!
+  outright: Boolean!
+  live: Boolean!
+  hidden: Boolean!
+  startDate: BigInt!
+  additionalHome: String!
+  additionalAway: String!
+  betType: String!
+  preview: Boolean!
+  bets: [Bet!]! @derivedFrom(field: "competition")
+}
+
+type Bet @entity {
+  id: String!
+  betId: BigInt!
+  competition: Competition!
+  backUser: Bytes!
+  team: BigInt!
+  pendingAmount: BigInt!
+  totalMatched: BigInt!
+  odd: BigInt!
+  effectiveOdd: BigInt!
+  collateral: BigInt!
+  matchetBetsListLength: BigInt!
+  matchedBetsList: [MatchedBet!]! @derivedFrom(field: "bet")
+  settled: Boolean!
+}
+
+type MatchedBet @entity {
+  id: String!
+  bet: Bet!
+  layUser: Bytes!
+  amount: BigInt!
+}
