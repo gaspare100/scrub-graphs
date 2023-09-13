@@ -16,6 +16,7 @@ export function handleNewLock(event: Deposit): void {
     newLock.nftID = event.params.tokenId;
     newLock.user = event.transaction.from;
     newLock.amount = event.params.value.div(BigInt.fromI32(10).pow(18));
+    newLock.deposited = event.params.value.div(BigInt.fromI32(10).pow(18));
     newLock.tx = event.transaction.hash;
     newLock.timestamp = event.block.timestamp;
     newLock.merged = false;
@@ -26,6 +27,9 @@ export function handleNewLock(event: Deposit): void {
   ) {
     log.info("Lock {} increased!", [event.params.tokenId.toString()]);
     lock.amount = lock.amount.plus(
+      event.params.value.div(BigInt.fromI32(10).pow(18))
+    );
+    lock.deposited = lock.deposited.plus(
       event.params.value.div(BigInt.fromI32(10).pow(18))
     );
     lock.save();
