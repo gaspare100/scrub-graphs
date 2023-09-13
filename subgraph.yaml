@@ -31,7 +31,7 @@ dataSources:
     source:
       address: "0x35361C9c2a324F5FB8f3aed2d7bA91CE1410893A"
       abi: VotingEscrow
-      startBlock: 5679676
+      startBlock: 5965089
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -51,7 +51,7 @@ dataSources:
     source:
       address: "0x4eB2B9768da9Ea26E3aBe605c9040bC12F236a59"
       abi: Voter
-      startBlock: 5679676
+      startBlock: 5965089
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
