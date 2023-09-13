@@ -22,6 +22,15 @@ export function handleNewLock(event: Deposit): void {
     newLock.save();
   } else if (
     lock != null &&
+    BigInt.fromI32(2).equals(BigInt.fromI32(event.params.deposit_type))
+  ) {
+    log.info("Lock {} increased!", [event.params.tokenId.toString()]);
+    lock.amount = lock.amount.plus(
+      event.params.value.div(BigInt.fromI32(10).pow(18))
+    );
+    lock.save();
+  } else if (
+    lock != null &&
     BigInt.fromI32(4).equals(BigInt.fromI32(event.params.deposit_type))
   ) {
     log.info("Lock {} merged!", [event.params.tokenId.toString()]);
@@ -30,7 +39,6 @@ export function handleNewLock(event: Deposit): void {
       event.params.value.div(BigInt.fromI32(10).pow(18))
     );
     lock.save();
-
   }
 }
 
