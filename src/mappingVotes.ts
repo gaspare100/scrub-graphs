@@ -5,10 +5,6 @@ import { Lock, Vote } from "../generated/schema";
 import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
 
 export function handleNewLock(event: Deposit): void {
-  if (event.receipt == null) {
-    log.info("Transaction not complete!", []);
-    return;
-  }
   if (event.receipt != null) {
     const receipt = event.receipt as ethereum.TransactionReceipt;
     const status = receipt.status;
@@ -16,9 +12,6 @@ export function handleNewLock(event: Deposit): void {
       log.info("Transaction failed!", []);
       return;
     }
-  } else {
-    log.info("Transaction failed!", []);
-    return;
   }
 
   let lock = Lock.load(event.params.tokenId.toString());
@@ -62,10 +55,6 @@ export function handleNewLock(event: Deposit): void {
 }
 
 export function handleNewVote(event: Voted): void {
-  if (event.receipt == null) {
-    log.info("Transaction not complete!", []);
-    return;
-  }
   if (event.receipt != null) {
     const receipt = event.receipt as ethereum.TransactionReceipt;
     const status = receipt.status;
@@ -73,11 +62,7 @@ export function handleNewVote(event: Voted): void {
       log.info("Transaction failed!", []);
       return;
     }
-  } else {
-    log.info("Transaction failed!", []);
-    return;
   }
-
   log.info("New vote detected!", []);
 
   let lock = Lock.load(event.params.tokenId.toString());
