@@ -51,7 +51,7 @@ export function handleNewLock(event: Deposit): void {
 }
 
 export function handleNewVote(event: Voted): void {
-  if (event.receipt?.status != BigInt.fromI32(1)) {
+  if (!event.receipt || event.receipt.status != BigInt.fromI32(1)) {
     log.info("Transaction failed!", []);
     return;
   }
