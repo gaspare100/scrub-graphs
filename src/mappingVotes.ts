@@ -79,6 +79,11 @@ export function handleNewVote(event: Voted): void {
       Bytes.fromHexString("0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25")
     )
   );
+  if (lock != null) {
+    newVote.weight = votes.toBigDecimal().div(lock.amount.toBigDecimal());
+  } else {
+    newVote.weight = 0;
+  }
   newVote.pool = Address.fromBytes(
     Bytes.fromHexString("0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25")
   );

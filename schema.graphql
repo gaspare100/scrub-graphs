@@ -64,4 +64,5 @@ type Vote @entity {
   pool: Bytes!
   timestamp: BigInt!
   lock: Lock
+  weight: BigDecimal!
 }
