@@ -5,7 +5,7 @@ import { Lock, Vote } from "../generated/schema";
 import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 
 export function handleNewLock(event: Deposit): void {
-  if (event.receipt?.status != BigInt.fromI32(1)) {
+  if (!event.receipt || !event.receipt.status.equals(BigInt.fromI32(1))) {
     log.info("Transaction failed!", []);
     return;
   }
