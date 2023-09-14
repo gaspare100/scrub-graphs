@@ -2,7 +2,7 @@ import { Deposit } from "../generated/VotingEscrow/VotingEscrow";
 import { Voted, Voter } from "../generated/Voter/Voter";
 
 import { Lock, Vote } from "../generated/schema";
-import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
 
 export function handleNewLock(event: Deposit): void {
   if (event.receipt != null) {
@@ -82,7 +82,7 @@ export function handleNewVote(event: Voted): void {
   if (lock != null) {
     newVote.weight = votes.toBigDecimal().div(lock.amount.toBigDecimal());
   } else {
-    newVote.weight = 0;
+    newVote.weight = BigDecimal.fromString("0");
   }
   newVote.pool = Address.fromBytes(
     Bytes.fromHexString("0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25")
