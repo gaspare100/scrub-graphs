@@ -80,7 +80,7 @@ export function handleNewVote(event: Voted): void {
     )
   );
   if (lock != null) {
-    newVote.weight = votes.toBigDecimal().div(lock.amount.toBigDecimal());
+    newVote.weight = votes.div(BigInt.fromI32(10).pow(18)).toBigDecimal().div(lock.amount.toBigDecimal());
   } else {
     newVote.weight = BigDecimal.fromString("0");
   }
