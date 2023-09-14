@@ -12,7 +12,7 @@ export function handleNewLock(event: Deposit): void {
   if (event.receipt != null) {
     const receipt = event.receipt as ethereum.TransactionReceipt;
     const status = receipt.status;
-    if (status != null && !(status as BigInt).equals(BigInt.fromI32(1))) {
+    if (!(status as BigInt).equals(BigInt.fromI32(1))) {
       log.info("Transaction failed!", []);
       return;
     }
@@ -69,7 +69,7 @@ export function handleNewVote(event: Voted): void {
   if (event.receipt != null) {
     const receipt = event.receipt as ethereum.TransactionReceipt;
     const status = receipt.status;
-    if (status != null && !(status as BigInt).equals(BigInt.fromI32(1))) {
+    if (!(status as BigInt).equals(BigInt.fromI32(1))) {
       log.info("Transaction failed!", []);
       return;
     }
