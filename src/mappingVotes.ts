@@ -10,7 +10,8 @@ export function handleNewLock(event: Deposit): void {
     return;
   }
   if (event.receipt != null) {
-    if (!event.receipt.status.equals(BigInt.fromI32(1))) {
+    const status = event.receipt.status;
+    if (status == null || !status.equals(BigInt.fromI32(1))) {
       log.info("Transaction failed!", []);
       return;
     }
@@ -62,7 +63,8 @@ export function handleNewVote(event: Voted): void {
     return;
   }
   if (event.receipt != null) {
-    if (!event.receipt.status.equals(BigInt.fromI32(1))) {
+    const status = event.receipt.status;
+    if (status == null || !status.equals(BigInt.fromI32(1))) {
       log.info("Transaction failed!", []);
       return;
     }
