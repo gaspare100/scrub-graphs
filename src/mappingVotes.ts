@@ -6,15 +6,14 @@ import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 
 export function handleNewLock(event: Deposit): void {
   if (event.receipt == null) {
-    log.info("Transaction failed!", []);
+    log.info("Transaction not complete!", []);
     return;
   }
-  if (
-    event.receipt != null &&
-    !event.receipt.status.equals(BigInt.fromI32(1))
-  ) {
-    log.info("Transaction failed!", []);
-    return;
+  if (event.receipt != null) {
+    if (!event.receipt.status.equals(BigInt.fromI32(1))) {
+      log.info("Transaction failed!", []);
+      return;
+    }
   }
 
   let lock = Lock.load(event.params.tokenId.toString());
@@ -59,16 +58,16 @@ export function handleNewLock(event: Deposit): void {
 
 export function handleNewVote(event: Voted): void {
   if (event.receipt == null) {
-    log.info("Transaction failed!", []);
+    log.info("Transaction not complete!", []);
     return;
   }
-  if (
-    event.receipt != null &&
-    !event.receipt.status.equals(BigInt.fromI32(1))
-  ) {
-    log.info("Transaction failed!", []);
-    return;
+  if (event.receipt != null) {
+    if (!event.receipt.status.equals(BigInt.fromI32(1))) {
+      log.info("Transaction failed!", []);
+      return;
+    }
   }
+
   log.info("New vote detected!", []);
 
   let lock = Lock.load(event.params.tokenId.toString());
