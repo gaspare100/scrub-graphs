@@ -13,7 +13,8 @@ export function handleNewLock(event: Deposit): void {
     event.receipt != null &&
     !event.receipt.status.equals(BigInt.fromI32(1))
   ) {
-    log.info("New lock detected!", []);
+    log.info("Transaction failed!", []);
+    return;
   }
 
   let lock = Lock.load(event.params.tokenId.toString());
@@ -65,7 +66,8 @@ export function handleNewVote(event: Voted): void {
     event.receipt != null &&
     !event.receipt.status.equals(BigInt.fromI32(1))
   ) {
-    log.info("New lock detected!", []);
+    log.info("Transaction failed!", []);
+    return;
   }
   log.info("New vote detected!", []);
 
