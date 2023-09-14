@@ -2,7 +2,7 @@ import { Deposit } from "../generated/VotingEscrow/VotingEscrow";
 import { Voted, Voter } from "../generated/Voter/Voter";
 
 import { Lock, Vote } from "../generated/schema";
-import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
 
 export function handleNewLock(event: Deposit): void {
   if (event.receipt == null) {
@@ -10,7 +10,8 @@ export function handleNewLock(event: Deposit): void {
     return;
   }
   if (event.receipt != null) {
-    const status = event.receipt.status;
+    const receipt = event.receipt as ethereum.TransactionReceipt;
+    const status = receipt.status as BigInt;
     if (status != null && !status.equals(BigInt.fromI32(1))) {
       log.info("Transaction failed!", []);
       return;
@@ -66,7 +67,8 @@ export function handleNewVote(event: Voted): void {
     return;
   }
   if (event.receipt != null) {
-    const status = event.receipt.status;
+    const receipt = event.receipt as ethereum.TransactionReceipt;
+    const status = receipt.status as BigInt;
     if (status != null && !status.equals(BigInt.fromI32(1))) {
       log.info("Transaction failed!", []);
       return;
