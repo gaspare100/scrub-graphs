@@ -5,6 +5,10 @@ import { Lock, Vote } from "../generated/schema";
 import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 
 export function handleNewLock(event: Deposit): void {
+  if (event.receipt?.status != BigInt.fromI32(1)) {
+    log.info("Transaction failed!", []);
+    return;
+  }
   log.info("New lock detected!", []);
   let lock = Lock.load(event.params.tokenId.toString());
 
@@ -47,6 +51,10 @@ export function handleNewLock(event: Deposit): void {
 }
 
 export function handleNewVote(event: Voted): void {
+  if (event.receipt?.status != BigInt.fromI32(1)) {
+    log.info("Transaction failed!", []);
+    return;
+  }
   log.info("New vote detected!", []);
 
   let lock = Lock.load(event.params.tokenId.toString());
