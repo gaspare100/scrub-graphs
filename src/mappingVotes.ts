@@ -11,10 +11,13 @@ export function handleNewLock(event: Deposit): void {
   }
   if (event.receipt != null) {
     const status = event.receipt.status;
-    if (status == null || !status.equals(BigInt.fromI32(1))) {
+    if (status != null && !status.equals(BigInt.fromI32(1))) {
       log.info("Transaction failed!", []);
       return;
     }
+  } else {
+    log.info("Transaction failed!", []);
+    return;
   }
 
   let lock = Lock.load(event.params.tokenId.toString());
@@ -64,10 +67,13 @@ export function handleNewVote(event: Voted): void {
   }
   if (event.receipt != null) {
     const status = event.receipt.status;
-    if (status == null || !status.equals(BigInt.fromI32(1))) {
+    if (status != null && !status.equals(BigInt.fromI32(1))) {
       log.info("Transaction failed!", []);
       return;
     }
+  } else {
+    log.info("Transaction failed!", []);
+    return;
   }
 
   log.info("New vote detected!", []);
