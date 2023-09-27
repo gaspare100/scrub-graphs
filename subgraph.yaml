@@ -9,7 +9,7 @@ dataSources:
     source:
       address: "0xaE0C5C2B81425b61C5b8D209431445Bdc662e86a"
       abi: WindAndCheckAggregator
-      startBlock: 6640093
+      startBlock: 5965089
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
