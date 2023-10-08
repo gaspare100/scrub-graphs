@@ -69,7 +69,7 @@ type Vote @entity {
 
 type Bomb @entity {
   id: String!
-  run: BigInt!
+  run: BigInt
   resets: [Reset!]! @derivedFrom(field: "bomb")
   currentJackpot: BigInt!
   currentWinner: Bytes!
