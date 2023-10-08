@@ -13,6 +13,18 @@ export function handleBombReset(event: BombReset): void {
   reset.bomb = event.address.toHexString() + "-" + event.params.run.toString();
   reset.user = event.params.currentWinner;
   reset.timestamp = event.block.timestamp;
+  reset.currentJackpot = event.params.currentBalance.div(
+    BigInt.fromI32(10).pow(18)
+  );
+  let bomb = Bomb.load(reset.bomb);
+  if (bomb != null) {
+    bomb.currentJackpot = event.params.currentBalance.div(
+      BigInt.fromI32(10).pow(18)
+    );
+    bomb.currentWinner = reset.user;
+    bomb.save();
+  }
+
   reset.save();
 }
 
@@ -25,7 +37,9 @@ export function handleBombStarted(event: BombStarted): void {
     bomb = new Bomb(event.address.toHexString());
   }
   bomb.run = event.params.run;
-  bomb.currentJackpot = event.params.currentBalance;
+  bomb.currentJackpot = event.params.currentBalance.div(
+    BigInt.fromI32(10).pow(18)
+  );
   bomb.currentWinner = Bytes.fromHexString(
     "0xD47D2f1543CdaE1284f20705a32B1362422cB652"
   );
@@ -40,7 +54,7 @@ export function handleBombExploded(event: BombExploded): void {
   if (bomb == null) {
     bomb = new Bomb(event.address.toHexString());
   }
-  bomb.currentJackpot = event.params.wonAmount;
+  bomb.currentJackpot = event.params.wonAmount.div(BigInt.fromI32(10).pow(18));
   bomb.currentWinner = event.params.winner;
   bomb.save();
 }
