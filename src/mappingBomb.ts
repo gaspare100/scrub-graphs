@@ -16,7 +16,7 @@ export function handleBombReset(event: BombReset): void {
   reset.save();
 }
 
-export function handleBombStart(event: BombStarted): void {
+export function handleBombStarted(event: BombStarted): void {
   log.info("New bomb start detected!", []);
   let bomb = Bomb.load(
     event.address.toHexString() + "-" + event.params.run.toString()
