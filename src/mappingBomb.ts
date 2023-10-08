@@ -10,7 +10,7 @@ export function handleBombReset(event: BombReset): void {
   if (reset == null) {
     reset = new Reset(event.transaction.hash.toHexString());
   }
-  reset.bomb = event.address.toHexString() + "-" + event.params.run;
+  reset.bomb = event.address.toHexString() + "-" + event.params.run.toString();
   reset.user = event.params.currentWinner;
   reset.timestamp = event.block.timestamp;
   reset.save();
@@ -18,7 +18,9 @@ export function handleBombReset(event: BombReset): void {
 
 export function handleBombStart(event: BombStarted): void {
   log.info("New bomb start detected!", []);
-  let bomb = Bomb.load(event.address.toHexString() + "-" + event.params.run);
+  let bomb = Bomb.load(
+    event.address.toHexString() + "-" + event.params.run.toString()
+  );
   if (bomb == null) {
     bomb = new Bomb(event.address.toHexString());
   }
@@ -33,7 +35,9 @@ export function handleBombStart(event: BombStarted): void {
 
 export function handleBombExploded(event: BombExploded): void {
   log.info("New bomb exploded detected!", []);
-  let bomb = Bomb.load(event.address.toHexString()+"-"+event.params.run);
+  let bomb = Bomb.load(
+    event.address.toHexString() + "-" + event.params.run.toString()
+  );
   if (bomb == null) {
     bomb = new Bomb(event.address.toHexString());
   }
