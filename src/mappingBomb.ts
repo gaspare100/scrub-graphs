@@ -29,7 +29,6 @@ export function handleBombStarted(event: BombStarted): void {
   bomb.currentWinner = Bytes.fromHexString(
     "0xD47D2f1543CdaE1284f20705a32B1362422cB652"
   );
-  bomb.resets = [];
   bomb.save();
 }
 
