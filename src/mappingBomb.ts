@@ -34,7 +34,9 @@ export function handleBombStarted(event: BombStarted): void {
     event.address.toHexString() + "-" + event.params.run.toString()
   );
   if (bomb == null) {
-    bomb = new Bomb(event.address.toHexString());
+    bomb = new Bomb(
+      event.address.toHexString() + "-" + event.params.run.toString()
+    );
   }
   bomb.run = event.params.run;
   bomb.currentJackpot = event.params.currentBalance.div(
