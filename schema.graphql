@@ -66,3 +66,19 @@ type Vote @entity {
   lock: Lock
   weight: BigDecimal!
 }
+
+type Bomb @entity {
+  id: String!
+  run: BigInt!
+  resets: [Reset!]! @derivedFrom(field: "bomb")
+  currentJackpot: BigInt!
+  currentWinner: Bytes!
+}
+
+type Reset @entity {
+  id: String!
+  user: Bytes!
+  bomb: Bomb!
+  timestamp: BigInt!
+  currentJackpot: BigInt!
+}
