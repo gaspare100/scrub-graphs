@@ -79,7 +79,7 @@ export function handleNewVote(event: Voted): void {
       Bytes.fromHexString("0x78Ef6D3E3d0da9B2248C11BE11743B4C573ADd25")
     )
   );
-  if (lock != null) {
+  if (lock != null && lock.amount.toBigDecimal() > BigDecimal.fromString("0")) {
     newVote.weight = votes.div(BigInt.fromI32(10).pow(18)).toBigDecimal().div(lock.amount.toBigDecimal());
   } else {
     newVote.weight = BigDecimal.fromString("0");
