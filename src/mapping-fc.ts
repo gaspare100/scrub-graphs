@@ -26,7 +26,7 @@ export function handleMatchUpdated(event: MatchUpdated): void {
   createOrUpdateCompetitionInfo(event.address);
 }
 
-export function handleMatchAdded(event: MatchAdded): void {
+export function handleNewMatch(event: MatchAdded): void {
   //create or update competition
   createOrUpdateCompetitionInfo(event.params.param0);
   let context = new DataSourceContext();
