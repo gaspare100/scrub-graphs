@@ -26,6 +26,26 @@ dataSources:
         - event: UpdateVault(indexed address,uint256,uint256,uint256,uint256,uint256,uint256)
           handler: handleUpdateVault
   - kind: ethereum/contract
+    name: EventCenter
+    network: kava
+    source:
+      address: "0xa07deE8FF35fE2e2961a7e1006EAdA98E24aE82E"
+      abi: IEventCenter
+      startBlock: 7554826
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mapping-fc.ts
+      entities:
+        - CompetitionInfo
+      abis:
+        - name: IEventCenter
+          file: ./abis/IEventCenter.json
+      eventHandlers:
+        - event: MatchAdded(address)
+          handler: handleNewMatch
+  - kind: ethereum/contract
     name: VotingEscrow
     network: kava
     source:
@@ -115,3 +135,25 @@ templates:
         - event: RewardDistribution(uint256,uint256)
           handler: handleNewReward
       file: ./src/mapping.ts
+  - name: Competition
+    kind: ethereum/contract
+    network: kava
+    source:
+      abi: ICompetition
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - CompetitionInfo
+        - BasicInfo
+        - AdditionalInfo
+        - MatchedBet
+        - BetInfo
+      abis:
+        - name: ICompetition
+          file: ./abis/ICompetition.json
+      eventHandlers:
+        - event: MatchUpdated()
+          handler: handleMatchUpdated
+      file: ./src/mapping-fc.ts

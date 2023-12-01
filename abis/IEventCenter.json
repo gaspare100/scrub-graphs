@@ -1,0 +1,1289 @@
+[
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "MatchAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "MatchedBet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "UnmatchedBet",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_match",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_competitions",
+          "type": "address"
+        }
+      ],
+      "name": "addMatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_refferal",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_referredBy",
+          "type": "address"
+        }
+      ],
+      "name": "addRefferal",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "addWhitelistedToken",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "balanceOf",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "cleanupMatches",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "deposit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "tokenAddress",
+          "type": "address"
+        }
+      ],
+      "name": "depositToken",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "liquidityMaker",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "fixCollateral",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getAllAffiliates",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getAllMatches",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getCombinedUserInfo",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "active",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256",
+              "name": "totalBets",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "totalWins",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "totalLosses",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "totalFees",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "balance",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "promoBalance",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "promoUsed",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct IEventCenter.UserInfo",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "competition",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getCompetitionInfo",
+      "outputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "contractAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "openStatus",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "host",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "guest",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "result",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "currentBetId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalAmountMatchedEffective",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "competitionPendingAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "outright",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "live",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "hidden",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "fee",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "competitionsAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "startDate",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct ICompetition.BasicInfo",
+              "name": "basicInfo",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "backUser",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "team",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "pendingAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalMatched",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "odd",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "effectiveOdd",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "collateral",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "matchetBetsListLength",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "layUser",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "amount",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct ICompetition.MatchedBet[]",
+                  "name": "matchedBetsList",
+                  "type": "tuple[]"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "settled",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct ICompetition.BetInfo[]",
+              "name": "bets",
+              "type": "tuple[]"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "additionalHome",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "additionalAway",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "betType",
+                  "type": "string"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "preview",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct ICompetition.AdditionalInfo",
+              "name": "additionalInfo",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct ICompetition.CompetitionInfo",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "all",
+          "type": "bool"
+        }
+      ],
+      "name": "getCompetitionsInfo",
+      "outputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "contractAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "openStatus",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "host",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "guest",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "result",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "currentBetId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalAmountMatchedEffective",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "competitionPendingAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "outright",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "live",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "hidden",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "fee",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "competitionsAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "startDate",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct ICompetition.BasicInfo",
+              "name": "basicInfo",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "backUser",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "team",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "pendingAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalMatched",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "odd",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "effectiveOdd",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "collateral",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "matchetBetsListLength",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "layUser",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "amount",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct ICompetition.MatchedBet[]",
+                  "name": "matchedBetsList",
+                  "type": "tuple[]"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "settled",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct ICompetition.BetInfo[]",
+              "name": "bets",
+              "type": "tuple[]"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "additionalHome",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "additionalAway",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "betType",
+                  "type": "string"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "preview",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct ICompetition.AdditionalInfo",
+              "name": "additionalInfo",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct ICompetition.CompetitionInfo[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "all",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "start",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "end",
+          "type": "uint256"
+        }
+      ],
+      "name": "getCompetitionsInfoAllPaginated",
+      "outputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "contractAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "openStatus",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "host",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "guest",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "result",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "currentBetId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalAmountMatchedEffective",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "competitionPendingAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "outright",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "live",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "hidden",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "fee",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "competitionsAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "startDate",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct ICompetition.BasicInfo",
+              "name": "basicInfo",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "backUser",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "team",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "pendingAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalMatched",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "odd",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "effectiveOdd",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "collateral",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "matchetBetsListLength",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "layUser",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "amount",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct ICompetition.MatchedBet[]",
+                  "name": "matchedBetsList",
+                  "type": "tuple[]"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "settled",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct ICompetition.BetInfo[]",
+              "name": "bets",
+              "type": "tuple[]"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "additionalHome",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "additionalAway",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "betType",
+                  "type": "string"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "preview",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct ICompetition.AdditionalInfo",
+              "name": "additionalInfo",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct ICompetition.CompetitionInfo[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_refferal",
+          "type": "address"
+        }
+      ],
+      "name": "getReferralInfo",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "address[]",
+              "name": "refferals",
+              "type": "address[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "refferalsCommissions",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "refferalsCommissionsClaimed",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "refferalsCommissionsClaimable",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "commissionRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "active",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct IEventCenter.RefferralInfo",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getTotalCollateral",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "tokenAddress",
+          "type": "address"
+        }
+      ],
+      "name": "getValueForToken",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "competition",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "team",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amountBetted",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "odd",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "referredBy",
+          "type": "address"
+        }
+      ],
+      "name": "matchBet",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "matchesLength",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_refferal",
+          "type": "address"
+        }
+      ],
+      "name": "payRefferalCommissions",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_refferal",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amountFees",
+          "type": "uint256"
+        }
+      ],
+      "name": "processWinForRefferral",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "promoBalanceOf",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_match",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_outcome",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "layAdress",
+          "type": "address"
+        }
+      ],
+      "name": "publishMatchedBet",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_match",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "publishUnmatchedBet",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "removeAllMatches",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "removeDuplicatesAllMatches",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_match",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_competitions",
+          "type": "address"
+        }
+      ],
+      "name": "removeMatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "sendToUser",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_operator",
+          "type": "address"
+        }
+      ],
+      "name": "setOperator",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_paymentToken",
+          "type": "address"
+        }
+      ],
+      "name": "setPaymentToken",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_promotionAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "setPromotionAmount",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_router",
+          "type": "address"
+        }
+      ],
+      "name": "setRouter",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_refferal",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_commissionRate",
+          "type": "uint256"
+        }
+      ],
+      "name": "setupRefferralPartner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "setupRefferralPartnerStandard",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ]

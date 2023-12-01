@@ -1,0 +1,844 @@
+[
+    {
+      "anonymous": false,
+      "inputs": [],
+      "name": "MatchUpdated",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "cancelBetId",
+          "type": "uint256"
+        }
+      ],
+      "name": "cancelBet",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "closeBets",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "fixCollateral",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "betId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getBetId",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "betId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getBetOdd",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "betId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getBetPendingAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "betId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getBetTeam",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getInfo",
+      "outputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "contractAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "openStatus",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "host",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "guest",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "result",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "currentBetId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalAmountMatchedEffective",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "competitionPendingAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "outright",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "live",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "hidden",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "fee",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "competitionsAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "startDate",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct ICompetition.BasicInfo",
+              "name": "basicInfo",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "backUser",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "team",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "pendingAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalMatched",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "odd",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "effectiveOdd",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "collateral",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "matchetBetsListLength",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "layUser",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "amount",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct ICompetition.MatchedBet[]",
+                  "name": "matchedBetsList",
+                  "type": "tuple[]"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "settled",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct ICompetition.BetInfo[]",
+              "name": "bets",
+              "type": "tuple[]"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "additionalHome",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "additionalAway",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "betType",
+                  "type": "string"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "preview",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct ICompetition.AdditionalInfo",
+              "name": "additionalInfo",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct ICompetition.CompetitionInfo",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getInfoForUser",
+      "outputs": [
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "contractAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "openStatus",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "host",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "guest",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "result",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "currentBetId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalAmountMatchedEffective",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "competitionPendingAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "outright",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "live",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "hidden",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "fee",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "competitionsAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "startDate",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct ICompetition.BasicInfo",
+              "name": "basicInfo",
+              "type": "tuple"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "backUser",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "team",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "pendingAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "totalMatched",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "odd",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "effectiveOdd",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "collateral",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "matchetBetsListLength",
+                  "type": "uint256"
+                },
+                {
+                  "components": [
+                    {
+                      "internalType": "address",
+                      "name": "layUser",
+                      "type": "address"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "amount",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct ICompetition.MatchedBet[]",
+                  "name": "matchedBetsList",
+                  "type": "tuple[]"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "settled",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct ICompetition.BetInfo[]",
+              "name": "bets",
+              "type": "tuple[]"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "string",
+                  "name": "additionalHome",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "additionalAway",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "betType",
+                  "type": "string"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "preview",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct ICompetition.AdditionalInfo",
+              "name": "additionalInfo",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct ICompetition.CompetitionInfo",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getLiquidityMaker",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getMissingCollateral",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getTotalCollateral",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getUserFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "team",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amountBetted",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "odd",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "referredBy",
+          "type": "address"
+        }
+      ],
+      "name": "matchBetForUser",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "team",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amountBetted",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "odd",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "referredBy",
+          "type": "address"
+        }
+      ],
+      "name": "matchBetSelf",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "openBets",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_eventCenter",
+          "type": "address"
+        }
+      ],
+      "name": "setEventCenter",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_fee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "fee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setFeeForUser",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_guest",
+          "type": "uint256"
+        }
+      ],
+      "name": "setGuest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bool",
+          "name": "_hidden",
+          "type": "bool"
+        }
+      ],
+      "name": "setHidden",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_host",
+          "type": "uint256"
+        }
+      ],
+      "name": "setHost",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_liquityMaker",
+          "type": "address"
+        }
+      ],
+      "name": "setLiquityMaker",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_operator",
+          "type": "address"
+        }
+      ],
+      "name": "setOperator",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bool",
+          "name": "_outright",
+          "type": "bool"
+        }
+      ],
+      "name": "setOutright",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_startDate",
+          "type": "uint256"
+        }
+      ],
+      "name": "setStartDate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        }
+      ],
+      "name": "setToken",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_treasury",
+          "type": "address"
+        }
+      ],
+      "name": "setTreasury",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "winningTeam",
+          "type": "uint256"
+        }
+      ],
+      "name": "settleCompetition",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "winningTeam",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "batchSize",
+          "type": "uint256"
+        }
+      ],
+      "name": "settleCompetitionPaged",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "tokens",
+          "type": "address[]"
+        }
+      ],
+      "name": "withdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ]
