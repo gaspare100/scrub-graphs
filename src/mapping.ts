@@ -2,7 +2,7 @@ import {
   Deposit,
   RewardDistribution,
   Withdraw,
-} from "../generated/WindAndCheck/WindAndCheck";
+} from "../generated/templates/WindAndCheck/WindAndCheck";
 
 import { WindAndCheck } from "../generated/templates";
 

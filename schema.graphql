@@ -82,3 +82,59 @@ type Reset @entity {
   timestamp: BigInt!
   currentJackpot: BigInt!
 }
+
+type BasicInfo @entity {
+  id: String!
+  competitionId: BigInt!
+  contractAddress: Bytes!
+  openStatus: Boolean!
+  host: BigInt!
+  guest: BigInt!
+  result: BigInt!
+  currentBetId: BigInt!
+  totalAmountMatchedEffective: BigInt!
+  competitionPendingAmount: BigInt!
+  outright: Boolean!
+  live: Boolean!
+  hidden: Boolean!
+  fee: BigInt!
+  competitionsAddress: Bytes!
+  startDate: BigInt!
+}
+
+type AdditionalInfo @entity {
+  id: String!
+  additionalHome: String!
+  additionalAway: String!
+  betType: String!
+  preview: Boolean!
+}
+
+type CompetitionInfo @entity {
+  id: String!
+  basicInfo: BasicInfo!
+  bets: [BetInfo!]! @derivedFrom(field: "competition")
+  additionalInfo: AdditionalInfo!
+}
+
+type BetInfo @entity {
+  id: String!
+  betId: BigInt!
+  competition: CompetitionInfo!
+  backUser: Bytes!
+  team: BigInt!
+  pendingAmount: BigInt!
+  totalMatched: BigInt!
+  odd: BigInt!
+  effectiveOdd: BigInt!
+  collateral: BigInt!
+  matchedBetsList: [MatchedBet!]! @derivedFrom(field: "bet")
+  settled: Boolean!
+}
+
+type MatchedBet @entity {
+  id: String!
+  bet: BetInfo!
+  layUser: Bytes!
+  amount: BigInt!
+}
