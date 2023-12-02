@@ -31,17 +31,21 @@ export function handleNewMatch(event: MatchAdded): void {
   createOrUpdateCompetitionInfo(event.params.param0);
   let context = new DataSourceContext();
   Competition.createWithContext(event.params.param0, context);
+  log.info("New competition detected!", []);
 }
 
 function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
+  log.info("Updating match info!" + competitionAddress.toHexString(), []);
+
   let userAddress = "0x0000000000000000000000000000000000000000";
+  let eventCenter = IEventCenter.bind(eventCenterAddress);
+
   // create new competition if not already created
   let competition = CompetitionInfo.load(competitionAddress.toHexString());
   if (competition == null) {
     competition = new CompetitionInfo(competitionAddress.toHexString());
   }
   //fetch info from contract proxy
-  let eventCenter = IEventCenter.bind(eventCenterAddress);
   let info = eventCenter.getCompetitionInfo(
     competitionAddress,
     eventCenterAddress
