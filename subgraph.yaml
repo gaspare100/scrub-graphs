@@ -39,6 +39,10 @@ dataSources:
       file: ./src/mapping-fc.ts
       entities:
         - CompetitionInfo
+        - BasicInfo
+        - AdditionalInfo
+        - MatchedBet
+        - BetInfo
       abis:
         - name: IEventCenter
           file: ./abis/IEventCenter.json
