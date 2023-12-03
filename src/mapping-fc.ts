@@ -22,7 +22,7 @@ const eventCenterAddress = Address.fromBytes(
 
 export function handleMatchUpdated(event: MatchUpdated): void {
   //create or update competition
-  createOrUpdateCompetitionInfo(event.address);
+  createOrUpdateCompetitionInfo(event.params.param0);
 }
 
 export function handleNewMatch(event: MatchAdded): void {
