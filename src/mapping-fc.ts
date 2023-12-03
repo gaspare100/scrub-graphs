@@ -171,7 +171,8 @@ function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
       matchedBet.save();
     }
   }
-
+  competition.basicInfo = basicInfo.id;
+  competition.additionalInfo = additionalInfo.id;
   //save
   competition.save();
 }
