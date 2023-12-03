@@ -1,7 +1,7 @@
-import { MatchUpdated } from "../generated/templates/Competition/ICompetition";
 import {
   IEventCenter,
   MatchAdded,
+  MatchUpdated,
 } from "../generated/EventCenter/IEventCenter";
 
 import {
@@ -15,7 +15,6 @@ import {
 import { Address, store } from "@graphprotocol/graph-ts";
 
 import { Bytes, DataSourceContext, log } from "@graphprotocol/graph-ts";
-import { Competition } from "../generated/templates";
 
 const eventCenterAddress = Address.fromBytes(
   Bytes.fromHexString("0xa07deE8FF35fE2e2961a7e1006EAdA98E24aE82E")
@@ -30,7 +29,6 @@ export function handleNewMatch(event: MatchAdded): void {
   //create or update competition
   log.info("New competition detected!", []);
   createOrUpdateCompetitionInfo(event.params.param0);
-  Competition.create(event.params.param0);
 }
 
 function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
