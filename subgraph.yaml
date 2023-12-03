@@ -49,6 +49,8 @@ dataSources:
       eventHandlers:
         - event: MatchAdded(address)
           handler: handleNewMatch
+        - event: MatchUpdated(address)
+          handler: handleMatchUpdated
   - kind: ethereum/contract
     name: VotingEscrow
     network: kava
@@ -139,25 +141,3 @@ templates:
         - event: RewardDistribution(uint256,uint256)
           handler: handleNewReward
       file: ./src/mapping.ts
-  - name: Competition
-    kind: ethereum/contract
-    network: kava
-    source:
-      abi: ICompetition
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - CompetitionInfo
-        - BasicInfo
-        - AdditionalInfo
-        - MatchedBet
-        - BetInfo
-      abis:
-        - name: ICompetition
-          file: ./abis/ICompetition.json
-      eventHandlers:
-        - event: MatchUpdated()
-          handler: handleMatchUpdated
-      file: ./src/mapping-fc.ts
