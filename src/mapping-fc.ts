@@ -179,9 +179,9 @@ function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
       if (!competitionUsers.includes(matchedBetsList[j].layUser)) {
         competitionUsers.push(matchedBetsList[j].layUser);
       }
-      betInfo.users = users;
       matchedBet.save();
     }
+    betInfo.users = users;
     betInfo.save();
   }
   competition.basicInfo = basicInfo.id;
