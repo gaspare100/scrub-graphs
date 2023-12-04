@@ -146,7 +146,8 @@ function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
     betInfo.effectiveOdd = betsList[i].effectiveOdd;
     betInfo.collateral = betsList[i].collateral;
     betInfo.settled = betsList[i].settled;
-    betInfo.save();
+    let users: Bytes[] = [];
+    users = [betsList[i].backUser];
     //create MatchedBets
     let matchedBetsList = betsList[i].matchedBetsList;
     /*
@@ -166,8 +167,13 @@ function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
       matchedBet.bet = betInfo.id;
       matchedBet.layUser = matchedBetsList[j].layUser;
       matchedBet.amount = matchedBetsList[j].amount;
+      if (!users.includes(matchedBetsList[j].layUser)) {
+        users.push(matchedBetsList[j].layUser);
+      }
+      betInfo.users = users;
       matchedBet.save();
     }
+    betInfo.save();
   }
   competition.basicInfo = basicInfo.id;
   competition.additionalInfo = additionalInfo.id;

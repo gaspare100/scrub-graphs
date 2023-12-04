@@ -130,6 +130,7 @@ type BetInfo @entity {
   collateral: BigInt!
   matchedBetsList: [MatchedBet!]! @derivedFrom(field: "bet")
   settled: Boolean!
+  users: [Bytes!]!
 }
 
 type MatchedBet @entity {
