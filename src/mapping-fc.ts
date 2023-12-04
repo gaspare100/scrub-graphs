@@ -42,6 +42,8 @@ function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
   if (competition == null) {
     competition = new CompetitionInfo(competitionAddress.toHexString());
   }
+  let competitionUsers: Bytes[] = [];
+
   //fetch info from contract proxy
   let info = eventCenter.getCompetitionInfo(
     competitionAddress,
@@ -116,6 +118,7 @@ function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
   }
   // create new bets
   let betsList = info.bets;
+
   for (let i = 0; i < betsList.length; i++) {
     //create BetInfo
     let betInfo = new BetInfo(
@@ -148,6 +151,9 @@ function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
     betInfo.settled = betsList[i].settled;
     let users: Bytes[] = [];
     users = [betsList[i].backUser];
+    if (!competitionUsers.includes(betsList[i].backUser)) {
+      competitionUsers.push(betsList[i].backUser);
+    }
     //create MatchedBets
     let matchedBetsList = betsList[i].matchedBetsList;
     /*
@@ -170,6 +176,9 @@ function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
       if (!users.includes(matchedBetsList[j].layUser)) {
         users.push(matchedBetsList[j].layUser);
       }
+      if (!competitionUsers.includes(matchedBetsList[j].layUser)) {
+        competitionUsers.push(matchedBetsList[j].layUser);
+      }
       betInfo.users = users;
       matchedBet.save();
     }
@@ -177,6 +186,7 @@ function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
   }
   competition.basicInfo = basicInfo.id;
   competition.additionalInfo = additionalInfo.id;
+  competition.users = competitionUsers;
   //save
   competition.save();
 }
