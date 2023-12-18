@@ -45,10 +45,14 @@ function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
   let competitionUsers: Bytes[] = [];
 
   //fetch info from contract proxy
-  let info = eventCenter.getCompetitionInfo(
+  let infoInitial = eventCenter.try_getCompetitionInfo(
     competitionAddress,
     eventCenterAddress
   );
+  if (infoInitial.reverted) {
+    return;
+  }
+  let info = infoInitial.reverted ? null : infoInitial.value;
   //basic info create if not already created
 
   let basicInfo = BasicInfo.load(competitionAddress.toHexString());
