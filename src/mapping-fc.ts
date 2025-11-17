@@ -190,6 +190,7 @@ function createOrUpdateCompetitionInfo(competitionAddress: Address): void {
   }
   competition.basicInfo = basicInfo.id;
   competition.additionalInfo = additionalInfo.id;
+  competition.betCount = betsList.length;
   competition.users = competitionUsers;
   //save
   competition.save();
