@@ -114,6 +114,7 @@ type CompetitionInfo @entity {
   id: String!
   basicInfo: BasicInfo!
   bets: [BetInfo!]! @derivedFrom(field: "competition")
+  betCount: Int!
   additionalInfo: AdditionalInfo!
   users: [Bytes!]!
 }
