@@ -9,13 +9,21 @@
     "create-local": "graph create scrubinvest --node http://127.0.0.1:8020",
     "codegen": "graph codegen",
     "build": "graph build",
+    "test": "graph test",
     "deploy": "graph deploy --studio scrubinvest",
     "deploy-legacy": "graph deploy scrubinvest --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/",
-    "deploy-local": "graph deploy scrubinvest --ipfs http://127.0.0.1:5001 --node http://127.0.0.1:8020"
+    "deploy-local": "graph deploy scrubinvest --ipfs http://127.0.0.1:5001 --node http://127.0.0.1:8020",
+    "create-scrubvault": "graph create --node http://127.0.0.1:8020 scrubvault",
+    "deploy-scrubvault": "graph deploy --node http://127.0.0.1:8020 --ipfs http://127.0.0.1:5001 scrubvault",
+    "deploy-grafting": "ts-node scripts/deploy-grafting.ts"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.62.0",
-    "@graphprotocol/graph-ts": "^0.31.0"
+    "@graphprotocol/graph-ts": "^0.31.0",
+    "@types/node": "^25.0.10",
+    "matchstick-as": "^0.6.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
