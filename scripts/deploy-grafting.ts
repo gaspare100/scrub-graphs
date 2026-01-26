@@ -27,7 +27,7 @@ try {
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
   console.log('✅ Updated config/kava.json with startBlock:', startBlock);
 } catch (error) {
-  console.error('❌ Error writing config file:', error.message);
+  console.error('❌ Error writing config file:', (error as Error).message);
   process.exit(1);
 }
 
@@ -38,7 +38,7 @@ try {
   console.log('\n🎉 Deployment completed successfully!');
   console.log(`📊 Subgraph will start indexing from block ${startBlock}`);
 } catch (error) {
-  console.error('❌ Deployment failed:', error.message);
+  console.error('❌ Deployment failed:', (error as Error).message);
   process.exit(1);
 }
 
