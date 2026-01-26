@@ -121,7 +121,7 @@ dataSources:
     source:
       address: "0x7BFf6c730dA681dF03364c955B165576186370Bc"
       abi: DepositVault
-      startBlock: 19087544
+      startBlock: {{ scrubvault_start_block }}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

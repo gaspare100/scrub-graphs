@@ -7,15 +7,14 @@
     "build-contract": "solc contracts/Gravity.sol --abi -o abis --overwrite && solc contracts/Gravity.sol --bin -o bin --overwrite",
     "create": "graph create scrubinvest --node https://api.thegraph.com/deploy/",
     "create-local": "graph create scrubinvest --node http://127.0.0.1:8020",
-    "codegen": "graph codegen",
-    "build": "graph build",
+    "codegen": "graph codegen --network kava",
+    "build": "graph build --network kava",
     "test": "graph test",
     "deploy": "graph deploy --studio scrubinvest",
     "deploy-legacy": "graph deploy scrubinvest --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/",
     "deploy-local": "graph deploy scrubinvest --ipfs http://127.0.0.1:5001 --node http://127.0.0.1:8020",
     "create-scrubvault": "graph create --node http://127.0.0.1:8020 scrubvault",
-    "deploy-scrubvault": "graph deploy --node http://127.0.0.1:8020 --ipfs http://127.0.0.1:5001 scrubvault",
-    "deploy-grafting": "ts-node scripts/deploy-grafting.ts"
+    "deploy-scrubvault": "graph codegen --network kava && graph build --network kava && graph deploy --network kava --node http://127.0.0.1:8020 --ipfs http://127.0.0.1:5001 scrubvault"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.62.0",
