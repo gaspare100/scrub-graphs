@@ -35,15 +35,26 @@ try {
 }
 
 // Update startBlock for ScrubDepositVault data source
-// Pattern matches: "name: ScrubDepositVault" followed by "source:" section with "startBlock: NUMBER"
-let updatedYaml = subgraphYaml.replace(
-  /(name:\s+ScrubDepositVault[\s\S]*?source:[\s\S]*?startBlock:\s*)\d+/,
-  `$1${startBlock}`
-);
+// Find the ScrubDepositVault block and update its startBlock
+const scrubVaultRegex = /(\s+name:\s+ScrubDepositVault[\s\S]*?startBlock:\s*)\d+/;
+let updatedYaml = subgraphYaml.replace(scrubVaultRegex, `$1${startBlock}`);
 
 if (updatedYaml === subgraphYaml) {
   console.error('❌ Error: Could not find ScrubDepositVault startBlock in subgraph.yaml');
-  console.error('🔍 Looking for pattern: name: ScrubDepositVault ... source: ... startBlock: NUMBER');
+  console.error('🔍 Debug: Checking if ScrubDepositVault exists in file...');
+  if (subgraphYaml.includes('ScrubDepositVault')) {
+    console.error('✅ ScrubDepositVault found in file');
+    console.error('❌ But startBlock pattern did not match');
+    // Try to show the relevant section
+    const lines = subgraphYaml.split('\n');
+    const idx = lines.findIndex(l => l.includes('ScrubDepositVault'));
+    if (idx !== -1) {
+      console.error('📄 Relevant section:');
+      console.error(lines.slice(Math.max(0, idx - 2), Math.min(lines.length, idx + 10)).join('\n'));
+    }
+  } else {
+    console.error('❌ ScrubDepositVault not found in file at all');
+  }
   process.exit(1);
 }
 
