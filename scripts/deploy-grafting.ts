@@ -1,8 +1,8 @@
 #!/usr/bin/env ts-node
 
-import { execSync } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 // Get arguments: startBlock and optional baseIpfsHash for grafting
 const startBlock = process.argv[2];
