@@ -108,10 +108,8 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
   }
   
   // Update vault totals (initialize if null for backward compatibility)
-  if (vault.totalShares == null) {
-    vault.totalShares = BigInt.fromI32(0);
-  }
-  vault.totalShares = vault.totalShares!.plus(event.params.sharesMinted);
+  const currentShares = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
+  vault.totalShares = currentShares.plus(event.params.sharesMinted);
   
   // Update VaultInfo for charts (compatible with existing schema)
   const infoId = vault.id + "-" + event.params.timestamp.toString();
@@ -120,7 +118,7 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
   info.timestamp = event.params.timestamp;
   info.tvl = event.params.usdAmount;
   info.apr = BigInt.fromI32(0);
-  info.totalSupplied = vault.totalShares! || BigInt.fromI32(0);
+  info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
   info.totalBorrowed = BigInt.fromI32(0);
   info.totalBorrowable = BigInt.fromI32(0);
   info.lastCompoundTimestamp = event.params.timestamp;
@@ -149,10 +147,8 @@ export function handleWithdrawalRequested(event: WithdrawalRequestedEvent): void
   withdrawal.save();
   
   // Update pending withdrawal shares
-  if (vault.totalPendingWithdrawalShares == null) {
-    vault.totalPendingWithdrawalShares = BigInt.fromI32(0);
-  }
-  vault.totalPendingWithdrawalShares = vault.totalPendingWithdrawalShares!.plus(event.params.shares);
+  const currentPendingShares = vault.totalPendingWithdrawalShares ? vault.totalPendingWithdrawalShares as BigInt : BigInt.fromI32(0);
+  vault.totalPendingWithdrawalShares = currentPendingShares.plus(event.params.shares);
   vault.save();
   
   // Update user stats
@@ -185,14 +181,10 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
   }
   
   // Update vault totals
-  if (vault.totalShares == null) {
-    vault.totalShares = BigInt.fromI32(0);
-  }
-  if (vault.totalPendingWithdrawalShares == null) {
-    vault.totalPendingWithdrawalShares = BigInt.fromI32(0);
-  }
-  vault.totalShares = vault.totalShares!.minus(event.params.shares);
-  vault.totalPendingWithdrawalShares = vault.totalPendingWithdrawalShares!.minus(event.params.shares);
+  const currentShares = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
+  const currentPendingShares = vault.totalPendingWithdrawalShares ? vault.totalPendingWithdrawalShares as BigInt : BigInt.fromI32(0);
+  vault.totalShares = currentShares.minus(event.params.shares);
+  vault.totalPendingWithdrawalShares = currentPendingShares.minus(event.params.shares);
   vault.save();
 }
 
