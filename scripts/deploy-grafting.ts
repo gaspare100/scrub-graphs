@@ -35,28 +35,32 @@ try {
 }
 
 // Update startBlock for ScrubDepositVault data source
-// Find the ScrubDepositVault block and update its startBlock
-const scrubVaultRegex = /(\s+name:\s+ScrubDepositVault[\s\S]*?startBlock:\s*)\d+/;
-let updatedYaml = subgraphYaml.replace(scrubVaultRegex, `$1${startBlock}`);
+// Split into lines, find ScrubDepositVault section, update startBlock
+const lines = subgraphYaml.split('\n');
+const scrubVaultIdx = lines.findIndex(l => l.includes('name: ScrubDepositVault'));
 
-if (updatedYaml === subgraphYaml) {
-  console.error('❌ Error: Could not find ScrubDepositVault startBlock in subgraph.yaml');
-  console.error('🔍 Debug: Checking if ScrubDepositVault exists in file...');
-  if (subgraphYaml.includes('ScrubDepositVault')) {
-    console.error('✅ ScrubDepositVault found in file');
-    console.error('❌ But startBlock pattern did not match');
-    // Try to show the relevant section
-    const lines = subgraphYaml.split('\n');
-    const idx = lines.findIndex(l => l.includes('ScrubDepositVault'));
-    if (idx !== -1) {
-      console.error('📄 Relevant section:');
-      console.error(lines.slice(Math.max(0, idx - 2), Math.min(lines.length, idx + 10)).join('\n'));
-    }
-  } else {
-    console.error('❌ ScrubDepositVault not found in file at all');
-  }
+if (scrubVaultIdx === -1) {
+  console.error('❌ Error: Could not find "name: ScrubDepositVault" in subgraph.yaml');
   process.exit(1);
 }
+
+// Find the startBlock line after ScrubDepositVault (should be within next 10 lines)
+let startBlockIdx = -1;
+for (let i = scrubVaultIdx + 1; i < Math.min(scrubVaultIdx + 15, lines.length); i++) {
+  if (lines[i].includes('startBlock:')) {
+    startBlockIdx = i;
+    break;
+  }
+}
+
+if (startBlockIdx === -1) {
+  console.error('❌ Error: Could not find startBlock after ScrubDepositVault');
+  process.exit(1);
+}
+
+// Replace the startBlock value
+lines[startBlockIdx] = lines[startBlockIdx].replace(/startBlock:\s*\d+/, `startBlock: ${startBlock}`);
+let updatedYaml = lines.join('\n');
 
 // Add grafting configuration if baseIpfsHash provided
 if (baseIpfsHash) {
