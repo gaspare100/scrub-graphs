@@ -76,10 +76,10 @@ type Vault @entity {
   shareToken: Bytes
   strategy: Bytes
   treasury: Bytes
-  totalShares: BigInt!
+  totalShares: BigInt
   shareValue: BigInt
   totalUsers: BigInt
-  totalPendingWithdrawalShares: BigInt!
+  totalPendingWithdrawalShares: BigInt
   paused: Boolean
 }
 
