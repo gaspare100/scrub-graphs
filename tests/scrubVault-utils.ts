@@ -1,12 +1,12 @@
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
-import { ethereum, Address, BigInt } from "@graphprotocol/graph-ts";
 import {
-  VaultInitialized,
-  DepositRequested,
-  DepositProcessed,
-  WithdrawalRequested,
-  WithdrawalProcessed,
-  RewardDistributed,
+    DepositProcessed,
+    DepositRequested,
+    RewardDistributed,
+    VaultInitialized,
+    WithdrawalProcessed,
+    WithdrawalRequested,
 } from "../generated/ScrubDepositVault/DepositVault";
 
 export function createVaultInitializedEvent(
@@ -111,7 +111,8 @@ export function createWithdrawalRequestedEvent(
   shares: BigInt,
   shareValueAtRequest: BigInt,
   expectedUsdAmount: BigInt,
-  canBeApprovedAt: BigInt
+  canBeApprovedAt: BigInt,
+  timestamp: BigInt
 ): WithdrawalRequested {
   let withdrawalRequestedEvent = changetype<WithdrawalRequested>(newMockEvent());
 
@@ -134,6 +135,9 @@ export function createWithdrawalRequestedEvent(
   );
   withdrawalRequestedEvent.parameters.push(
     new ethereum.EventParam("canBeApprovedAt", ethereum.Value.fromUnsignedBigInt(canBeApprovedAt))
+  );
+  withdrawalRequestedEvent.parameters.push(
+    new ethereum.EventParam("timestamp", ethereum.Value.fromUnsignedBigInt(timestamp))
   );
 
   return withdrawalRequestedEvent;
