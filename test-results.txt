@@ -1,0 +1,26 @@
+Skipping download/install step because binary already exists at /Users/gasparemarchese/scrub/scrub-graphs/node_modules/binary-install-raw/bin/0.6.0
+
+___  ___      _       _         _   _      _
+|  \/  |     | |     | |       | | (_)    | |
+| .  . | __ _| |_ ___| |__  ___| |_ _  ___| | __
+| |\/| |/ _` | __/ __| '_ \/ __| __| |/ __| |/ /
+| |  | | (_| | || (__| | | \__ \ |_| | (__|   <
+\_|  |_/\__,_|\__\___|_| |_|___/\__|_|\___|_|\_\
+    
+Compiling...
+
+💬 Compiling scrubvault...
+
+Igniting tests 🔥
+
+scrubvault
+--------------------------------------------------
+  ScrubVault:
+    √ VaultInitialized creates vault entity with correct fields - 0.132ms
+          💬 ScrubVault initialized!
+      💬 ScrubVault created: 0x7bff6c730da681df03364c955b165576186370bc
+
+    √ DepositRequested creates deposit and updates user stats - 0.256ms
+          💬 ScrubVault initialized!
+      💬 ScrubVault created: 0x7bff6c730da681df03364c955b165576186370bc
+
