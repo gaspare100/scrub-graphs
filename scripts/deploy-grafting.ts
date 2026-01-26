@@ -35,13 +35,15 @@ try {
 }
 
 // Update startBlock for ScrubDepositVault data source
+// Pattern matches: "name: ScrubDepositVault" followed by "source:" section with "startBlock: NUMBER"
 let updatedYaml = subgraphYaml.replace(
-  /(name: ScrubDepositVault[\s\S]*?source:[\s\S]*?startBlock:\s*)\d+/,
+  /(name:\s+ScrubDepositVault[\s\S]*?source:[\s\S]*?startBlock:\s*)\d+/,
   `$1${startBlock}`
 );
 
 if (updatedYaml === subgraphYaml) {
   console.error('❌ Error: Could not find ScrubDepositVault startBlock in subgraph.yaml');
+  console.error('🔍 Looking for pattern: name: ScrubDepositVault ... source: ... startBlock: NUMBER');
   process.exit(1);
 }
 
