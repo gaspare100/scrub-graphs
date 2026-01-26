@@ -1,21 +1,17 @@
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
-  assert,
-  describe,
-  test,
-  clearStore,
-  beforeAll,
-  afterAll,
+    afterAll,
+    assert,
+    clearStore,
+    describe,
+    test
 } from "matchstick-as/assembly/index";
-import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
-  handleVaultInitialized,
-  handleDepositRequested,
-  handleDepositProcessed,
-  handleWithdrawalRequested,
-  handleWithdrawalProcessed,
-  handleRewardDistributed,
+    handleDepositProcessed,
+    handleDepositRequested,
+    handleVaultInitialized
 } from "../src/mappingScrubVault";
-import { createVaultInitializedEvent, createDepositRequestedEvent, createDepositProcessedEvent } from "./scrubVault-utils";
+import { createDepositProcessedEvent, createDepositRequestedEvent, createVaultInitializedEvent } from "./scrubVault-utils";
 
 // Test constants
 const VAULT_ADDRESS = "0x7BFf6c730dA681dF03364c955B165576186370Bc";

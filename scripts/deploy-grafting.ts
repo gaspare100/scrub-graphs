@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 
-import * as fs from 'fs';
 import { execSync } from 'child_process';
+import * as fs from 'fs';
 import * as path from 'path';
 
 // Get arguments: startBlock and optional baseIpfsHash for grafting

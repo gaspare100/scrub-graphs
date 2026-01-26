@@ -111,16 +111,16 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
   vault.totalShares = vault.totalShares.plus(event.params.sharesMinted);
   
   // Update VaultInfo for charts (compatible with existing schema)
-  const infoId = vault.id + "-" + event.block.timestamp.toString();
+  const infoId = vault.id + "-" + event.params.timestamp.toString();
   let info = new VaultInfo(infoId);
   info.vault = vault.id;
-  info.timestamp = event.block.timestamp;
+  info.timestamp = event.params.timestamp;
   info.tvl = event.params.usdAmount;
   info.apr = BigInt.fromI32(0);
   info.totalSupplied = vault.totalShares;
   info.totalBorrowed = BigInt.fromI32(0);
   info.totalBorrowable = BigInt.fromI32(0);
-  info.lastCompoundTimestamp = event.block.timestamp;
+  info.lastCompoundTimestamp = event.params.timestamp;
   info.save();
   
   vault.save();
@@ -137,8 +137,8 @@ export function handleWithdrawalRequested(event: WithdrawalRequestedEvent): void
   withdrawal.user = event.params.user;
   withdrawal.shares = event.params.shares;
   withdrawal.amount = event.params.expectedUsdAmount;
-  withdrawal.timestamp = event.block.timestamp;
-  withdrawal.requestedAt = event.block.timestamp;
+  withdrawal.timestamp = event.params.timestamp;
+  withdrawal.requestedAt = event.params.timestamp;
   withdrawal.canBeApprovedAt = event.params.canBeApprovedAt;
   withdrawal.status = "pending";
   withdrawal.fee = BigInt.fromI32(0);  // Will be calculated when processed
@@ -152,7 +152,7 @@ export function handleWithdrawalRequested(event: WithdrawalRequestedEvent): void
   // Update user stats
   let vaultUser = getOrCreateVaultUser(vault.id, event.params.user);
   vaultUser.pendingWithdrawalCount = vaultUser.pendingWithdrawalCount.plus(BigInt.fromI32(1));
-  vaultUser.lastInteractionTimestamp = event.block.timestamp;
+  vaultUser.lastInteractionTimestamp = event.params.timestamp;
   vaultUser.save();
 }
 
@@ -174,7 +174,7 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
     vaultUser.shareBalance = vaultUser.shareBalance.minus(event.params.shares);
     vaultUser.pendingWithdrawalCount = vaultUser.pendingWithdrawalCount.minus(BigInt.fromI32(1));
     vaultUser.totalWithdrawn = vaultUser.totalWithdrawn.plus(event.params.usdAmount);
-    vaultUser.lastInteractionTimestamp = event.block.timestamp;
+    vaultUser.lastInteractionTimestamp = event.params.timestamp;
     vaultUser.save();
   }
   
