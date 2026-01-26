@@ -115,6 +115,40 @@ dataSources:
           handler: handleBombReset
         - event: BombExploded(uint256,indexed address,uint256,uint256)
           handler: handleBombExploded
+  - kind: ethereum/contract
+    name: ScrubDepositVault
+    network: kava
+    source:
+      address: "0x7BFf6c730dA681dF03364c955B165576186370Bc"
+      abi: DepositVault
+      startBlock: 19087544
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappingScrubVault.ts
+      entities:
+        - Vault
+        - VaultDeposit
+        - VaultWithdraw
+        - VaultReward
+        - VaultInfo
+      abis:
+        - name: DepositVault
+          file: ./abis/DepositVault.json
+      eventHandlers:
+        - event: VaultInitialized(indexed address,indexed address,indexed address,address,address,uint256)
+          handler: handleVaultInitialized
+        - event: DepositRequested(indexed uint256,indexed address,uint256,uint256,uint256)
+          handler: handleDepositRequested
+        - event: DepositProcessed(indexed uint256,indexed address,uint256,uint256,uint256)
+          handler: handleDepositProcessed
+        - event: WithdrawalRequested(indexed uint256,indexed address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleWithdrawalRequested
+        - event: WithdrawalProcessed(indexed uint256,indexed address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleWithdrawalProcessed
+        - event: RewardDistributed(int256,uint256,uint256)
+          handler: handleRewardDistributed
 templates:
   - name: WindAndCheck
     kind: ethereum/contract

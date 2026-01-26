@@ -1,20 +1,19 @@
 import {
-  IEventCenter,
-  MatchAdded,
-  MatchUpdated,
+    IEventCenter,
+    MatchAdded,
+    MatchUpdated,
 } from "../generated/EventCenter/IEventCenter";
 
-import {
-  CompetitionInfo,
-  BasicInfo,
-  AdditionalInfo,
-  BetInfo,
-  BetInfoLoader,
-  MatchedBet,
-} from "../generated/schema";
 import { Address, store } from "@graphprotocol/graph-ts";
+import {
+    AdditionalInfo,
+    BasicInfo,
+    BetInfo,
+    CompetitionInfo,
+    MatchedBet
+} from "../generated/schema";
 
-import { Bytes, DataSourceContext, log } from "@graphprotocol/graph-ts";
+import { Bytes, log } from "@graphprotocol/graph-ts";
 
 const eventCenterAddress = Address.fromBytes(
   Bytes.fromHexString("0xa07deE8FF35fE2e2961a7e1006EAdA98E24aE82E")

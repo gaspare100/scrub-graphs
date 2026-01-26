@@ -4,6 +4,11 @@ type VaultDeposit @entity {
   user: Bytes!
   amount: BigInt!
   timestamp: BigInt!
+  
+  # ScrubVault specific fields
+  status: String        # "pending" | "processed" for ScrubVault
+  fee: BigInt          # Deposit fee for ScrubVault
+  sharesMinted: BigInt # Shares received for ScrubVault
 }
 
 type VaultWithdraw @entity {
@@ -12,6 +17,13 @@ type VaultWithdraw @entity {
   user: Bytes!
   amount: BigInt!
   timestamp: BigInt!
+  
+  # ScrubVault specific fields
+  shares: BigInt           # Shares burned for ScrubVault
+  status: String           # "pending" | "processed" for ScrubVault
+  fee: BigInt              # Withdrawal fee for ScrubVault
+  requestedAt: BigInt      # When withdrawal was requested
+  canBeApprovedAt: BigInt  # When withdrawal can be processed
 }
 
 type VaultReward @entity {
@@ -34,6 +46,18 @@ type VaultInfo @entity {
   lastCompoundTimestamp: BigInt!
 }
 
+type VaultUser @entity {
+  id: String! # Format: "{vaultAddress}-{userAddress}"
+  vault: Vault!
+  user: Bytes!
+  shareBalance: BigInt!
+  pendingDepositCount: BigInt!
+  pendingWithdrawalCount: BigInt!
+  totalDeposited: BigInt!
+  totalWithdrawn: BigInt!
+  lastInteractionTimestamp: BigInt!
+}
+
 type Vault @entity {
   id: String!
   infos: [VaultInfo!]! @derivedFrom(field: "vault")
@@ -43,6 +67,20 @@ type Vault @entity {
   deposits: [VaultDeposit!]! @derivedFrom(field: "vault")
   withdrawals: [VaultWithdraw!]! @derivedFrom(field: "vault")
   rewards: [VaultReward!]! @derivedFrom(field: "vault")
+  users: [VaultUser!]! @derivedFrom(field: "vault")
+  
+  # Discriminator: "hover" for legacy vaults, "scrub" for new deposit vaults
+  vaultType: String
+  
+  # ScrubVault specific fields (optional for backward compatibility)
+  shareToken: Bytes
+  strategy: Bytes
+  treasury: Bytes
+  totalShares: BigInt!
+  shareValue: BigInt
+  totalUsers: BigInt
+  totalPendingWithdrawalShares: BigInt!
+  paused: Boolean
 }
 
 type Lock @entity {
