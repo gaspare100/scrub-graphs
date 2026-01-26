@@ -2,6 +2,9 @@ specVersion: 0.0.4
 description: ScrubInvest
 schema:
   file: ./schema.graphql
+graft:
+  base: Qmao3uyccX9ewLcbWL6o3LXq7rTDCibJB6cjyxeUKdJKYE
+  block: {{ graft_block }}
 dataSources:
   - kind: ethereum/contract
     name: WindAndCheckAggregator
