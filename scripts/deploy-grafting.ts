@@ -17,28 +17,26 @@ if (!startBlock || isNaN(Number(startBlock))) {
 console.log('🚀 Starting deployment...');
 console.log(`📦 Start Block: ${startBlock}`);
 
-// Update config/kava.json with the new start block
-const configPath = path.join(__dirname, '..', 'config', 'kava.json');
-const config = {
-  scrubvault_start_block: startBlock
-};
+// Read and process subgraph.yaml with mustache template substitution
+const subgraphPath = path.join(__dirname, '..', 'subgraph.yaml');
+let subgraphContent = fs.readFileSync(subgraphPath, 'utf8');
 
-try {
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
-  console.log('✅ Updated config/kava.json with startBlock:', startBlock);
-} catch (error) {
-  console.error('❌ Error writing config file:', (error as Error).message);
-  process.exit(1);
-}
+// Replace {{ scrubvault_start_block }} with actual value
+const processedContent = subgraphContent.replace(/\{\{\s*scrubvault_start_block\s*\}\}/g, startBlock);
+
+// Write processed content back
+fs.writeFileSync(subgraphPath, processedContent, 'utf8');
+console.log('✅ Updated subgraph.yaml with startBlock:', startBlock);
 
 // Run deployment
 try {
   console.log('\n🔨 Running deployment...');
   execSync('npm run deploy-scrubvault', { stdio: 'inherit', cwd: path.join(__dirname, '..') });
   console.log('\n🎉 Deployment completed successfully!');
-  console.log(`📊 Subgraph will start indexing from block ${startBlock}`);
+  console.log(`📊 Subgraph is indexing from block ${startBlock}`);
 } catch (error) {
   console.error('❌ Deployment failed:', (error as Error).message);
   process.exit(1);
 }
+
 
