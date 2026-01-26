@@ -22,11 +22,16 @@ const subgraphPath = path.join(__dirname, '..', 'subgraph.yaml');
 let subgraphContent = fs.readFileSync(subgraphPath, 'utf8');
 
 // Replace {{ scrubvault_start_block }} with actual value
-const processedContent = subgraphContent.replace(/\{\{\s*scrubvault_start_block\s*\}\}/g, startBlock);
+subgraphContent = subgraphContent.replace(/\{\{\s*scrubvault_start_block\s*\}\}/g, startBlock);
+
+// Replace {{ graft_block }} with actual value (use startBlock - 1 for safety)
+const graftBlock = (Number(startBlock) - 1).toString();
+subgraphContent = subgraphContent.replace(/\{\{\s*graft_block\s*\}\}/g, graftBlock);
 
 // Write processed content back
-fs.writeFileSync(subgraphPath, processedContent, 'utf8');
+fs.writeFileSync(subgraphPath, subgraphContent, 'utf8');
 console.log('✅ Updated subgraph.yaml with startBlock:', startBlock);
+console.log('✅ Updated subgraph.yaml with graft block:', graftBlock);
 
 // Run deployment
 try {
