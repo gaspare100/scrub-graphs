@@ -208,7 +208,7 @@ export function handleRewardDistributed(event: RewardDistributedEvent): void {
   info.timestamp = event.block.timestamp;
   info.tvl = event.params.newTotalVaultValue;
   info.apr = BigInt.fromI32(0);
-  info.totalSupplied = vault.totalShares;
+  info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
   info.totalBorrowed = BigInt.fromI32(0);
   info.totalBorrowable = BigInt.fromI32(0);
   info.lastCompoundTimestamp = event.block.timestamp;
