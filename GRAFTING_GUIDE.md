@@ -62,10 +62,18 @@ cd /path/to/scrub-graphs
 git fetch
 git pull
 
-# Deploy with grafting
-graph create --node http://localhost:8020 scrub-v2
-graph deploy --node http://localhost:8020 --ipfs http://localhost:5001 scrub-v2
+# First time: create the subgraph
+npm run create-scrubvault
+
+# Deploy with automatic startBlock update
+npm run deploy-grafting 19087544
 ```
+
+**What this does**:
+- ✅ Updates `subgraph.yaml` with the specified startBlock
+- ✅ Runs codegen to generate types
+- ✅ Builds the subgraph
+- ✅ Deploys to local graph-node
 
 ### 5. What Happens
 
@@ -88,16 +96,21 @@ features:
 
 Then deploy without grafting - existing data sources continue, new one starts fresh.
 
-### Option B: Multiple Subgraphs
+### Option B: Multiple Subgraphs (Recommended)
 Deploy ScrubVault as a SEPARATE subgraph:
 
 ```bash
-# Create new subgraph.yaml for just ScrubVault
-cp subgraph.yaml scrubvault-subgraph.yaml
+# On DO server
+cd /path/to/scrub-graphs
 
-# Edit scrubvault-subgraph.yaml to ONLY include ScrubDepositVault data source
+# First time: create the subgraph
+npm run create-scrubvault
 
-# Deploy as separate subgraph
+# Deploy with startBlock parameter
+npm run deploy-grafting 19087544
+```
+
+This automatically updates the subgraph.yaml, runs codegen, builds, and deploys!
 graph create --node http://localhost:8020 scrubvault
 graph deploy --node http://localhost:8020 --ipfs http://localhost:5001 scrubvault
 
