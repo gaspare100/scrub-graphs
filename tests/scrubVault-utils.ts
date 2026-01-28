@@ -7,6 +7,10 @@ import {
     VaultInitialized,
     WithdrawalProcessed,
     WithdrawalRequested,
+    DepositFeeUpdated,
+    WithdrawalFeeUpdated,
+    MinDepositUpdated,
+    MinWithdrawalSharesUpdated,
 } from "../generated/ScrubDepositVault/DepositVault";
 
 export function createVaultInitializedEvent(
@@ -201,4 +205,64 @@ export function createRewardDistributedEvent(
   );
 
   return rewardDistributedEvent;
+}
+
+export function createDepositFeeUpdatedEvent(
+  oldFee: BigInt,
+  newFee: BigInt
+): DepositFeeUpdated {
+  let event = changetype<DepositFeeUpdated>(newMockEvent());
+  event.parameters = new Array();
+  event.parameters.push(
+    new ethereum.EventParam("oldFee", ethereum.Value.fromUnsignedBigInt(oldFee))
+  );
+  event.parameters.push(
+    new ethereum.EventParam("newFee", ethereum.Value.fromUnsignedBigInt(newFee))
+  );
+  return event;
+}
+
+export function createWithdrawalFeeUpdatedEvent(
+  oldFee: BigInt,
+  newFee: BigInt
+): WithdrawalFeeUpdated {
+  let event = changetype<WithdrawalFeeUpdated>(newMockEvent());
+  event.parameters = new Array();
+  event.parameters.push(
+    new ethereum.EventParam("oldFee", ethereum.Value.fromUnsignedBigInt(oldFee))
+  );
+  event.parameters.push(
+    new ethereum.EventParam("newFee", ethereum.Value.fromUnsignedBigInt(newFee))
+  );
+  return event;
+}
+
+export function createMinDepositUpdatedEvent(
+  oldMin: BigInt,
+  newMin: BigInt
+): MinDepositUpdated {
+  let event = changetype<MinDepositUpdated>(newMockEvent());
+  event.parameters = new Array();
+  event.parameters.push(
+    new ethereum.EventParam("oldMin", ethereum.Value.fromUnsignedBigInt(oldMin))
+  );
+  event.parameters.push(
+    new ethereum.EventParam("newMin", ethereum.Value.fromUnsignedBigInt(newMin))
+  );
+  return event;
+}
+
+export function createMinWithdrawalSharesUpdatedEvent(
+  oldMin: BigInt,
+  newMin: BigInt
+): MinWithdrawalSharesUpdated {
+  let event = changetype<MinWithdrawalSharesUpdated>(newMockEvent());
+  event.parameters = new Array();
+  event.parameters.push(
+    new ethereum.EventParam("oldMin", ethereum.Value.fromUnsignedBigInt(oldMin))
+  );
+  event.parameters.push(
+    new ethereum.EventParam("newMin", ethereum.Value.fromUnsignedBigInt(newMin))
+  );
+  return event;
 }
