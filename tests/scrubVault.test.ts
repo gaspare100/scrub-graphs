@@ -14,7 +14,8 @@ import {
     handleDepositFeeUpdated,
     handleWithdrawalFeeUpdated,
     handleMinDepositUpdated,
-    handleMinWithdrawalSharesUpdated
+    handleMinWithdrawalSharesUpdated,
+    handleRewardDistributed
 } from "../src/mappingScrubVault";
 import { 
     createDepositProcessedEvent, 
@@ -23,7 +24,8 @@ import {
     createDepositFeeUpdatedEvent,
     createWithdrawalFeeUpdatedEvent,
     createMinDepositUpdatedEvent,
-    createMinWithdrawalSharesUpdatedEvent
+    createMinWithdrawalSharesUpdatedEvent,
+    createRewardDistributedEvent
 } from "./scrubVault-utils";
 
 // Test constants
@@ -449,5 +451,209 @@ describe("ScrubVault", () => {
     log.info("   ✓ minWithdrawalShares = 25 shares ({})", [expectedShares]);
     
     log.info("🎉 Complete Config Update Flow test PASSED - All 4 config values can be independently updated", []);
+  });
+
+  test("RewardDistributed creates reward and updates vault info", () => {
+    clearStore();
+    log.info("🧪 TEST: RewardDistributed - Testing reward distribution and vault value updates", []);
+    
+    // Initialize vault first
+    log.info("📋 Step 1: Initialize vault", []);
+    let vaultInitializedEvent = createVaultInitializedEvent(
+      Address.fromString(VAULT_ADDRESS),
+      Address.fromString(USDT_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      Address.fromString(SHARE_TOKEN_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      BigInt.fromI32(1000000)
+    );
+    handleVaultInitialized(vaultInitializedEvent);
+    log.info("   ✓ Vault initialized", []);
+    
+    // Distribute reward
+    log.info("📋 Step 2: Distribute reward of 1000 USDC (positive PnL)", []);
+    let rewardAmount = BigInt.fromString("1000000000"); // 1000 USDC profit (6 decimals)
+    let newShareValue = BigInt.fromString("1100000000000000000"); // $1.10 per share (18 decimals)
+    let newTotalVaultValue = BigInt.fromString("11000000000"); // $11,000 total (6 decimals)
+    let timestamp = BigInt.fromI32(1706270400);
+    
+    log.info("   - Reward Amount: {} ($1000)", [rewardAmount.toString()]);
+    log.info("   - New Share Value: {} ($1.10)", [newShareValue.toString()]);
+    log.info("   - New Total Vault Value: {} ($11,000)", [newTotalVaultValue.toString()]);
+    
+    let rewardEvent = createRewardDistributedEvent(
+      rewardAmount,
+      newShareValue,
+      newTotalVaultValue
+    );
+    rewardEvent.address = Address.fromString(VAULT_ADDRESS);
+    rewardEvent.block.timestamp = timestamp;
+    
+    log.info("⚡ Calling handleRewardDistributed...", []);
+    handleRewardDistributed(rewardEvent);
+    
+    // Verify VaultReward entity created
+    log.info("✅ Verifying VaultReward entity:", []);
+    const rewardId = VAULT_ADDRESS.toLowerCase() + "-reward-" + timestamp.toString();
+    log.info("   ✓ Checking reward entity ID: {}", [rewardId]);
+    assert.fieldEquals("VaultReward", rewardId, "vault", VAULT_ADDRESS.toLowerCase());
+    assert.fieldEquals("VaultReward", rewardId, "reward", rewardAmount.toString());
+    assert.fieldEquals("VaultReward", rewardId, "timestamp", timestamp.toString());
+    log.info("   ✓ VaultReward entity created with correct reward amount", []);
+    
+    // Verify VaultInfo entity created
+    log.info("✅ Verifying VaultInfo entity:", []);
+    const infoId = VAULT_ADDRESS.toLowerCase() + "-" + timestamp.toString();
+    log.info("   ✓ Checking info entity ID: {}", [infoId]);
+    assert.fieldEquals("VaultInfo", infoId, "vault", VAULT_ADDRESS.toLowerCase());
+    assert.fieldEquals("VaultInfo", infoId, "tvl", newTotalVaultValue.toString());
+    assert.fieldEquals("VaultInfo", infoId, "timestamp", timestamp.toString());
+    log.info("   ✓ VaultInfo entity created with updated TVL", []);
+    
+    log.info("🎉 RewardDistributed test PASSED - Reward and vault info correctly recorded", []);
+  });
+
+  test("RewardDistributed handles negative PnL (losses)", () => {
+    clearStore();
+    log.info("🧪 TEST: RewardDistributed - Testing negative reward (loss scenario)", []);
+    
+    // Initialize vault
+    log.info("📋 Step 1: Initialize vault", []);
+    let vaultInitializedEvent = createVaultInitializedEvent(
+      Address.fromString(VAULT_ADDRESS),
+      Address.fromString(USDT_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      Address.fromString(SHARE_TOKEN_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      BigInt.fromI32(1000000)
+    );
+    handleVaultInitialized(vaultInitializedEvent);
+    log.info("   ✓ Vault initialized", []);
+    
+    // Distribute negative reward (loss)
+    log.info("📋 Step 2: Distribute negative reward of -500 USDC (loss)", []);
+    let rewardAmount = BigInt.fromString("-500000000"); // -500 USDC loss (6 decimals, negative)
+    let newShareValue = BigInt.fromString("950000000000000000"); // $0.95 per share (18 decimals)
+    let newTotalVaultValue = BigInt.fromString("9500000000"); // $9,500 total (6 decimals)
+    let timestamp = BigInt.fromI32(1706270500);
+    
+    log.info("   - Reward Amount: {} (-$500 LOSS)", [rewardAmount.toString()]);
+    log.info("   - New Share Value: {} ($0.95 - decreased)", [newShareValue.toString()]);
+    log.info("   - New Total Vault Value: {} ($9,500 - decreased)", [newTotalVaultValue.toString()]);
+    
+    let rewardEvent = createRewardDistributedEvent(
+      rewardAmount,
+      newShareValue,
+      newTotalVaultValue
+    );
+    rewardEvent.address = Address.fromString(VAULT_ADDRESS);
+    rewardEvent.block.timestamp = timestamp;
+    
+    log.info("⚡ Calling handleRewardDistributed...", []);
+    handleRewardDistributed(rewardEvent);
+    
+    // Verify negative reward recorded
+    log.info("✅ Verifying negative reward recorded correctly:", []);
+    const rewardId = VAULT_ADDRESS.toLowerCase() + "-reward-" + timestamp.toString();
+    assert.fieldEquals("VaultReward", rewardId, "reward", rewardAmount.toString());
+    log.info("   ✓ Negative reward amount correctly stored: {}", [rewardAmount.toString()]);
+    
+    // Verify vault value decreased
+    log.info("✅ Verifying vault TVL decreased:", []);
+    const infoId = VAULT_ADDRESS.toLowerCase() + "-" + timestamp.toString();
+    assert.fieldEquals("VaultInfo", infoId, "tvl", newTotalVaultValue.toString());
+    log.info("   ✓ TVL correctly reflects loss: {}", [newTotalVaultValue.toString()]);
+    
+    log.info("🎉 Negative Reward test PASSED - Losses correctly tracked", []);
+  });
+
+  test("Multiple reward distributions track historical performance", () => {
+    clearStore();
+    log.info("🧪 TEST: Multiple Rewards - Testing historical reward tracking over time", []);
+    
+    // Initialize vault
+    log.info("📋 Step 1: Initialize vault", []);
+    let vaultInitializedEvent = createVaultInitializedEvent(
+      Address.fromString(VAULT_ADDRESS),
+      Address.fromString(USDT_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      Address.fromString(SHARE_TOKEN_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      BigInt.fromI32(1000000)
+    );
+    handleVaultInitialized(vaultInitializedEvent);
+    log.info("   ✓ Vault initialized", []);
+    
+    // First reward - profit
+    log.info("📋 Step 2: First reward distribution (+$100 profit)", []);
+    let reward1 = BigInt.fromI32(100000000);
+    let shareValue1 = BigInt.fromString("1010000000000000000");
+    let tvl1 = BigInt.fromString("10100000000");
+    let time1 = BigInt.fromI32(1706270400);
+    
+    let event1 = createRewardDistributedEvent(reward1, shareValue1, tvl1);
+    event1.address = Address.fromString(VAULT_ADDRESS);
+    event1.block.timestamp = time1;
+    handleRewardDistributed(event1);
+    log.info("   ✓ First reward recorded: +$100, share value = $1.01", []);
+    
+    // Second reward - bigger profit
+    log.info("📋 Step 3: Second reward distribution (+$500 profit)", []);
+    let reward2 = BigInt.fromI32(500000000);
+    let shareValue2 = BigInt.fromString("1060000000000000000");
+    let tvl2 = BigInt.fromString("10600000000");
+    let time2 = BigInt.fromI32(1706356800);
+    
+    let event2 = createRewardDistributedEvent(reward2, shareValue2, tvl2);
+    event2.address = Address.fromString(VAULT_ADDRESS);
+    event2.block.timestamp = time2;
+    handleRewardDistributed(event2);
+    log.info("   ✓ Second reward recorded: +$500, share value = $1.06", []);
+    
+    // Third reward - small loss
+    log.info("📋 Step 4: Third reward distribution (-$50 loss)", []);
+    let reward3 = BigInt.fromI32(-50000000);
+    let shareValue3 = BigInt.fromString("1055000000000000000");
+    let tvl3 = BigInt.fromString("10550000000");
+    let time3 = BigInt.fromI32(1706443200);
+    
+    let event3 = createRewardDistributedEvent(reward3, shareValue3, tvl3);
+    event3.address = Address.fromString(VAULT_ADDRESS);
+    event3.block.timestamp = time3;
+    handleRewardDistributed(event3);
+    log.info("   ✓ Third reward recorded: -$50, share value = $1.055", []);
+    
+    // Verify all three rewards exist
+    log.info("✅ Verifying all 3 reward events were recorded:", []);
+    const rewardId1 = VAULT_ADDRESS.toLowerCase() + "-reward-" + time1.toString();
+    const rewardId2 = VAULT_ADDRESS.toLowerCase() + "-reward-" + time2.toString();
+    const rewardId3 = VAULT_ADDRESS.toLowerCase() + "-reward-" + time3.toString();
+    
+    assert.fieldEquals("VaultReward", rewardId1, "reward", reward1.toString());
+    log.info("   ✓ Reward 1 exists: +$100", []);
+    
+    assert.fieldEquals("VaultReward", rewardId2, "reward", reward2.toString());
+    log.info("   ✓ Reward 2 exists: +$500", []);
+    
+    assert.fieldEquals("VaultReward", rewardId3, "reward", reward3.toString());
+    log.info("   ✓ Reward 3 exists: -$50", []);
+    
+    // Verify all three VaultInfo snapshots exist
+    log.info("✅ Verifying all 3 VaultInfo snapshots were created:", []);
+    const infoId1 = VAULT_ADDRESS.toLowerCase() + "-" + time1.toString();
+    const infoId2 = VAULT_ADDRESS.toLowerCase() + "-" + time2.toString();
+    const infoId3 = VAULT_ADDRESS.toLowerCase() + "-" + time3.toString();
+    
+    assert.fieldEquals("VaultInfo", infoId1, "tvl", tvl1.toString());
+    log.info("   ✓ Snapshot 1: TVL = $10,100", []);
+    
+    assert.fieldEquals("VaultInfo", infoId2, "tvl", tvl2.toString());
+    log.info("   ✓ Snapshot 2: TVL = $10,600", []);
+    
+    assert.fieldEquals("VaultInfo", infoId3, "tvl", tvl3.toString());
+    log.info("   ✓ Snapshot 3: TVL = $10,550", []);
+    
+    log.info("🎉 Multiple Rewards test PASSED - Complete historical performance tracking working", []);
+    log.info("   💡 Net performance: +$100 +$500 -$50 = +$550 profit total", []);
   });
 });
