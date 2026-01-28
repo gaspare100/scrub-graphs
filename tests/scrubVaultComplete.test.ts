@@ -13,6 +13,10 @@ import {
     handleVaultInitialized,
     handleWithdrawalProcessed,
     handleWithdrawalRequested,
+    handleDepositFeeUpdated,
+    handleWithdrawalFeeUpdated,
+    handleMinDepositUpdated,
+    handleMinWithdrawalSharesUpdated,
 } from "../src/mappingScrubVault";
 import {
     createDepositProcessedEvent,
@@ -21,6 +25,10 @@ import {
     createVaultInitializedEvent,
     createWithdrawalProcessedEvent,
     createWithdrawalRequestedEvent,
+    createDepositFeeUpdatedEvent,
+    createWithdrawalFeeUpdatedEvent,
+    createMinDepositUpdatedEvent,
+    createMinWithdrawalSharesUpdatedEvent,
 } from "./scrubVault-utils";
 
 // Test constants
@@ -337,5 +345,104 @@ describe("ScrubVault Complete Tests", () => {
 
     // Verify VaultInfo updated
     assert.entityCount("VaultInfo", 2); // One from deposit, one from reward
+  });
+
+  test("Deposit fee update changes vault config", () => {    // Initialize vault
+    let initEvent = createVaultInitializedEvent(
+      Address.fromString(VAULT_ADDRESS),
+      Address.fromString(USDT_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      Address.fromString(SHARE_TOKEN_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      BigInt.fromI32(1000000)
+    );
+    handleVaultInitialized(initEvent);
+
+    const vaultId = VAULT_ADDRESS.toLowerCase();
+    
+    // Update deposit fee
+    let updateEvent = createDepositFeeUpdatedEvent(
+      BigInt.fromI32(1000000), // Old: $1
+      BigInt.fromI32(2000000)  // New: $2
+    );
+    updateEvent.address = Address.fromString(VAULT_ADDRESS);
+    handleDepositFeeUpdated(updateEvent);
+
+    assert.fieldEquals("Vault", vaultId, "depositFee", "2000000");
+  });
+
+  test("Withdrawal fee update changes vault config", () => {
+    // Initialize vault
+    let initEvent = createVaultInitializedEvent(
+      Address.fromString(VAULT_ADDRESS),
+      Address.fromString(USDT_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      Address.fromString(SHARE_TOKEN_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      BigInt.fromI32(1000000)
+    );
+    handleVaultInitialized(initEvent);
+
+    const vaultId = VAULT_ADDRESS.toLowerCase();
+    
+    // Update withdrawal fee
+    let updateEvent = createWithdrawalFeeUpdatedEvent(
+      BigInt.fromI32(1000000), // Old: $1
+      BigInt.fromI32(3000000)  // New: $3
+    );
+    updateEvent.address = Address.fromString(VAULT_ADDRESS);
+    handleWithdrawalFeeUpdated(updateEvent);
+
+    assert.fieldEquals("Vault", vaultId, "withdrawalFee", "3000000");
+  });
+
+  test("Min deposit update changes vault config", () => {
+    // Initialize vault
+    let initEvent = createVaultInitializedEvent(
+      Address.fromString(VAULT_ADDRESS),
+      Address.fromString(USDT_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      Address.fromString(SHARE_TOKEN_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      BigInt.fromI32(1000000)
+    );
+    handleVaultInitialized(initEvent);
+
+    const vaultId = VAULT_ADDRESS.toLowerCase();
+    
+    // Update min deposit
+    let updateEvent = createMinDepositUpdatedEvent(
+      BigInt.fromI32(100000000), // Old: $100
+      BigInt.fromI32(10000000)   // New: $10
+    );
+    updateEvent.address = Address.fromString(VAULT_ADDRESS);
+    handleMinDepositUpdated(updateEvent);
+
+    assert.fieldEquals("Vault", vaultId, "minDeposit", "10000000");
+  });
+
+  test("Min withdrawal shares update changes vault config", () => {
+    // Initialize vault
+    let initEvent = createVaultInitializedEvent(
+      Address.fromString(VAULT_ADDRESS),
+      Address.fromString(USDT_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      Address.fromString(SHARE_TOKEN_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      BigInt.fromI32(1000000)
+    );
+    handleVaultInitialized(initEvent);
+
+    const vaultId = VAULT_ADDRESS.toLowerCase();
+    
+    // Update min withdrawal shares
+    let updateEvent = createMinWithdrawalSharesUpdatedEvent(
+      BigInt.fromString("100000000000000000000"), // Old: 100 shares
+      BigInt.fromString("10000000000000000000")   // New: 10 shares
+    );
+    updateEvent.address = Address.fromString(VAULT_ADDRESS);
+    handleMinWithdrawalSharesUpdated(updateEvent);
+
+    assert.fieldEquals("Vault", vaultId, "minWithdrawalShares", "10000000000000000000");
   });
 });

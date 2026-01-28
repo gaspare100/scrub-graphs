@@ -9,9 +9,21 @@ import {
 import {
     handleDepositProcessed,
     handleDepositRequested,
-    handleVaultInitialized
+    handleVaultInitialized,
+    handleDepositFeeUpdated,
+    handleWithdrawalFeeUpdated,
+    handleMinDepositUpdated,
+    handleMinWithdrawalSharesUpdated
 } from "../src/mappingScrubVault";
-import { createDepositProcessedEvent, createDepositRequestedEvent, createVaultInitializedEvent } from "./scrubVault-utils";
+import { 
+    createDepositProcessedEvent, 
+    createDepositRequestedEvent, 
+    createVaultInitializedEvent,
+    createDepositFeeUpdatedEvent,
+    createWithdrawalFeeUpdatedEvent,
+    createMinDepositUpdatedEvent,
+    createMinWithdrawalSharesUpdatedEvent
+} from "./scrubVault-utils";
 
 // Test constants
 const VAULT_ADDRESS = "0x7BFf6c730dA681dF03364c955B165576186370Bc";
@@ -202,5 +214,65 @@ describe("ScrubVault", () => {
     assert.fieldEquals("Vault", VAULT_ADDRESS.toLowerCase(), "totalShares", sharesMinted.toString());
     let vaultUserId = VAULT_ADDRESS.toLowerCase() + "-" + USER_ADDRESS.toLowerCase();
     assert.fieldEquals("VaultUser", vaultUserId, "shareBalance", sharesMinted.toString());
+  });
+
+  test("DepositFeeUpdated updates vault depositFee", () => {
+    // First initialize vault
+    let vaultInitializedEvent = createVaultInitializedEvent(
+      Address.fromString(VAULT_ADDRESS),
+      Address.fromString(USDT_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      Address.fromString(SHARE_TOKEN_ADDRESS),
+      Address.fromString(STRATEGY_ADDRESS),
+      BigInt.fromI32(1000000)
+    );
+    handleVaultInitialized(vaultInitializedEvent);
+
+    // Update deposit fee from $1 to $5
+    let depositFeeUpdatedEvent = createDepositFeeUpdatedEvent(
+      BigInt.fromI32(1000000), // $1 in USDC (6 decimals)
+      BigInt.fromI32(5000000)  // $5 in USDC (6 decimals)
+    );
+    depositFeeUpdatedEvent.address = Address.fromString(VAULT_ADDRESS);
+    handleDepositFeeUpdated(depositFeeUpdatedEvent);
+
+    assert.fieldEquals("Vault", VAULT_ADDRESS.toLowerCase(), "depositFee", "5000000");
+  });
+
+  test("WithdrawalFeeUpdated updates vault withdrawalFee", () => {
+    // Update withdrawal fee from $1 to $10
+    let withdrawalFeeUpdatedEvent = createWithdrawalFeeUpdatedEvent(
+      BigInt.fromI32(1000000),  // $1
+      BigInt.fromI32(10000000)  // $10
+    );
+    withdrawalFeeUpdatedEvent.address = Address.fromString(VAULT_ADDRESS);
+    handleWithdrawalFeeUpdated(withdrawalFeeUpdatedEvent);
+
+    assert.fieldEquals("Vault", VAULT_ADDRESS.toLowerCase(), "withdrawalFee", "10000000");
+  });
+
+  test("MinDepositUpdated updates vault minDeposit", () => {
+    // Update min deposit from $100 to $10
+    let minDepositUpdatedEvent = createMinDepositUpdatedEvent(
+      BigInt.fromI32(100000000), // $100
+      BigInt.fromI32(10000000)   // $10
+    );
+    minDepositUpdatedEvent.address = Address.fromString(VAULT_ADDRESS);
+    handleMinDepositUpdated(minDepositUpdatedEvent);
+
+    assert.fieldEquals("Vault", VAULT_ADDRESS.toLowerCase(), "minDeposit", "10000000");
+  });
+
+  test("MinWithdrawalSharesUpdated updates vault minWithdrawalShares", () => {
+    // Update min withdrawal from 100 to 10 shares
+    let minWithdrawalUpdatedEvent = createMinWithdrawalSharesUpdatedEvent(
+      BigInt.fromI32(100).times(BigInt.fromI32(10).pow(18)), // 100 shares (18 decimals)
+      BigInt.fromI32(10).times(BigInt.fromI32(10).pow(18))   // 10 shares (18 decimals)
+    );
+    minWithdrawalUpdatedEvent.address = Address.fromString(VAULT_ADDRESS);
+    handleMinWithdrawalSharesUpdated(minWithdrawalUpdatedEvent);
+
+    const expected = BigInt.fromI32(10).times(BigInt.fromI32(10).pow(18)).toString();
+    assert.fieldEquals("Vault", VAULT_ADDRESS.toLowerCase(), "minWithdrawalShares", expected);
   });
 });
