@@ -81,6 +81,12 @@ type Vault @entity {
   totalUsers: BigInt
   totalPendingWithdrawalShares: BigInt
   paused: Boolean
+  
+  # Configurable fees and limits (ScrubVault)
+  depositFee: BigInt
+  withdrawalFee: BigInt
+  minDeposit: BigInt
+  minWithdrawalShares: BigInt
 }
 
 type Lock @entity {
