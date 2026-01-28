@@ -154,6 +154,14 @@ dataSources:
           handler: handleWithdrawalProcessed
         - event: RewardDistributed(int256,uint256,uint256)
           handler: handleRewardDistributed
+        - event: DepositFeeUpdated(uint256,uint256)
+          handler: handleDepositFeeUpdated
+        - event: WithdrawalFeeUpdated(uint256,uint256)
+          handler: handleWithdrawalFeeUpdated
+        - event: MinDepositUpdated(uint256,uint256)
+          handler: handleMinDepositUpdated
+        - event: MinWithdrawalSharesUpdated(uint256,uint256)
+          handler: handleMinWithdrawalSharesUpdated
 templates:
   - name: WindAndCheck
     kind: ethereum/contract
