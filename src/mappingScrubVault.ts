@@ -56,10 +56,19 @@ export function handleVaultInitialized(event: VaultInitializedEvent): void {
   
   // Initialize configurable fees and limits from contract
   let contract = DepositVaultContract.bind(event.params.vault);
-  vault.depositFee = contract.depositFee();
-  vault.withdrawalFee = contract.withdrawalFee();
-  vault.minDeposit = contract.minDeposit();
-  vault.minWithdrawalShares = contract.minWithdrawalShares();
+  
+  // Try to read config values, use defaults if contract call fails
+  let depositFeeResult = contract.try_depositFee();
+  vault.depositFee = depositFeeResult.reverted ? BigInt.fromI32(0) : depositFeeResult.value;
+  
+  let withdrawalFeeResult = contract.try_withdrawalFee();
+  vault.withdrawalFee = withdrawalFeeResult.reverted ? BigInt.fromI32(0) : withdrawalFeeResult.value;
+  
+  let minDepositResult = contract.try_minDeposit();
+  vault.minDeposit = minDepositResult.reverted ? BigInt.fromI32(0) : minDepositResult.value;
+  
+  let minWithdrawalSharesResult = contract.try_minWithdrawalShares();
+  vault.minWithdrawalShares = minWithdrawalSharesResult.reverted ? BigInt.fromI32(0) : minWithdrawalSharesResult.value;
   
   // Fields compatible with existing Vault schema
   vault.decimals = BigInt.fromI32(6); // USDT decimals
