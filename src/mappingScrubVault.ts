@@ -122,6 +122,8 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
     
     // Update user stats
     let vaultUser = getOrCreateVaultUser(vault.id, event.params.user);
+    const isNewUser = vaultUser.totalDeposited.equals(BigInt.fromI32(0));
+    
     vaultUser.shareBalance = vaultUser.shareBalance.plus(event.params.sharesMinted);
     vaultUser.pendingDepositCount = vaultUser.pendingDepositCount.minus(BigInt.fromI32(1));
     // Add to totalDeposited when deposit is processed (gross amount = amount + fee)
@@ -130,6 +132,12 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
     vaultUser.totalDeposited = vaultUser.totalDeposited.plus(depositAmount).plus(depositFee);
     vaultUser.lastInteractionTimestamp = event.params.timestamp;
     vaultUser.save();
+    
+    // Increment totalUsers if this is the user's first deposit
+    if (isNewUser) {
+      const currentTotalUsers = vault.totalUsers ? vault.totalUsers as BigInt : BigInt.fromI32(0);
+      vault.totalUsers = currentTotalUsers.plus(BigInt.fromI32(1));
+    }
   }
   
   // Update vault totals (initialize if null for backward compatibility)
