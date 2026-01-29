@@ -1,16 +1,16 @@
 import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
 import {
+    DepositFeeUpdated as DepositFeeUpdatedEvent,
     DepositProcessed as DepositProcessedEvent,
     DepositRequested as DepositRequestedEvent,
-    RewardDistributed as RewardDistributedEvent,
-    VaultInitialized as VaultInitializedEvent,
-    WithdrawalProcessed as WithdrawalProcessedEvent,
-    WithdrawalRequested as WithdrawalRequestedEvent,
-    DepositFeeUpdated as DepositFeeUpdatedEvent,
-    WithdrawalFeeUpdated as WithdrawalFeeUpdatedEvent,
+    DepositVault as DepositVaultContract,
     MinDepositUpdated as MinDepositUpdatedEvent,
     MinWithdrawalSharesUpdated as MinWithdrawalSharesUpdatedEvent,
-    DepositVault as DepositVaultContract,
+    RewardDistributed as RewardDistributedEvent,
+    VaultInitialized as VaultInitializedEvent,
+    WithdrawalFeeUpdated as WithdrawalFeeUpdatedEvent,
+    WithdrawalProcessed as WithdrawalProcessedEvent,
+    WithdrawalRequested as WithdrawalRequestedEvent,
 } from "../generated/ScrubDepositVault/DepositVault";
 import { Vault, VaultDeposit, VaultInfo, VaultReward, VaultUser, VaultWithdraw } from "../generated/schema";
 
@@ -103,7 +103,7 @@ export function handleDepositRequested(event: DepositRequestedEvent): void {
   // Update user stats
   let vaultUser = getOrCreateVaultUser(vault.id, event.params.user);
   vaultUser.pendingDepositCount = vaultUser.pendingDepositCount.plus(BigInt.fromI32(1));
-  vaultUser.totalDeposited = vaultUser.totalDeposited.plus(event.params.amount).plus(event.params.fee);
+  // Don't add to totalDeposited yet - only when processed
   vaultUser.lastInteractionTimestamp = event.params.timestamp;
   vaultUser.save();
 }
@@ -124,6 +124,10 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
     let vaultUser = getOrCreateVaultUser(vault.id, event.params.user);
     vaultUser.shareBalance = vaultUser.shareBalance.plus(event.params.sharesMinted);
     vaultUser.pendingDepositCount = vaultUser.pendingDepositCount.minus(BigInt.fromI32(1));
+    // Add to totalDeposited when deposit is processed (gross amount = amount + fee)
+    const depositAmount = deposit.amount ? deposit.amount as BigInt : BigInt.fromI32(0);
+    const depositFee = deposit.fee ? deposit.fee as BigInt : BigInt.fromI32(0);
+    vaultUser.totalDeposited = vaultUser.totalDeposited.plus(depositAmount).plus(depositFee);
     vaultUser.lastInteractionTimestamp = event.params.timestamp;
     vaultUser.save();
   }
@@ -131,6 +135,13 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
   // Update vault totals (initialize if null for backward compatibility)
   const currentShares = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
   vault.totalShares = currentShares.plus(event.params.sharesMinted);
+  
+  // Update shareValue from contract
+  let contract = DepositVaultContract.bind(event.address);
+  let shareValueResult = contract.try_shareValue();
+  if (!shareValueResult.reverted) {
+    vault.shareValue = shareValueResult.value;
+  }
   
   // Update VaultInfo for charts (compatible with existing schema)
   const infoId = vault.id + "-" + event.params.timestamp.toString();
@@ -206,6 +217,14 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
   const currentPendingShares = vault.totalPendingWithdrawalShares ? vault.totalPendingWithdrawalShares as BigInt : BigInt.fromI32(0);
   vault.totalShares = currentShares.minus(event.params.shares);
   vault.totalPendingWithdrawalShares = currentPendingShares.minus(event.params.shares);
+  
+  // Update shareValue from contract
+  let contract = DepositVaultContract.bind(event.address);
+  let shareValueResult = contract.try_shareValue();
+  if (!shareValueResult.reverted) {
+    vault.shareValue = shareValueResult.value;
+  }
+  
   vault.save();
 }
 
@@ -234,6 +253,14 @@ export function handleRewardDistributed(event: RewardDistributedEvent): void {
   info.totalBorrowable = BigInt.fromI32(0);
   info.lastCompoundTimestamp = event.block.timestamp;
   info.save();
+  
+  // Update shareValue from contract after reward distribution
+  let contract = DepositVaultContract.bind(event.address);
+  let shareValueResult = contract.try_shareValue();
+  if (!shareValueResult.reverted) {
+    vault.shareValue = shareValueResult.value;
+  }
+  vault.save();
 }
 
 // Event Handler: DepositFeeUpdated
