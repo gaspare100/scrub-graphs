@@ -3,12 +3,14 @@ type VaultDeposit @entity {
   vault: Vault!
   user: Bytes!
   amount: BigInt!
-  timestamp: BigInt!
+  timestamp: BigInt!        # Deprecated - use requestedAt or processedAt
   
   # ScrubVault specific fields
-  status: String        # "pending" | "processed" for ScrubVault
-  fee: BigInt          # Deposit fee for ScrubVault
-  sharesMinted: BigInt # Shares received for ScrubVault
+  status: String            # "pending" | "processed" for ScrubVault
+  fee: BigInt              # Deposit fee for ScrubVault
+  sharesMinted: BigInt     # Shares received for ScrubVault
+  requestedAt: BigInt      # When deposit was requested
+  processedAt: BigInt      # When deposit was processed (null if pending)
 }
 
 type VaultWithdraw @entity {
@@ -16,7 +18,7 @@ type VaultWithdraw @entity {
   vault: Vault!
   user: Bytes!
   amount: BigInt!
-  timestamp: BigInt!
+  timestamp: BigInt!       # Deprecated - use requestedAt or processedAt
   
   # ScrubVault specific fields
   shares: BigInt           # Shares burned for ScrubVault
@@ -24,6 +26,7 @@ type VaultWithdraw @entity {
   fee: BigInt              # Withdrawal fee for ScrubVault
   requestedAt: BigInt      # When withdrawal was requested
   canBeApprovedAt: BigInt  # When withdrawal can be processed
+  processedAt: BigInt      # When withdrawal was processed (null if pending)
 }
 
 type VaultReward @entity {

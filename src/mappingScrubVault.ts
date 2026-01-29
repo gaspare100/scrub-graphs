@@ -95,6 +95,8 @@ export function handleDepositRequested(event: DepositRequestedEvent): void {
   deposit.amount = event.params.amount;      // Net amount (after fee)
   deposit.fee = event.params.fee;
   deposit.timestamp = event.params.timestamp;
+  deposit.requestedAt = event.params.timestamp;
+  deposit.processedAt = null;                // Will be set when processed
   deposit.status = "pending";
   deposit.sharesMinted = BigInt.fromI32(0);  // Will be set when processed
   
@@ -118,6 +120,7 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
   if (deposit) {
     deposit.status = "processed";
     deposit.sharesMinted = event.params.sharesMinted;
+    deposit.processedAt = event.params.timestamp;
     deposit.save();
     
     // Update user stats
@@ -209,6 +212,7 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
     withdrawal.status = "processed";
     withdrawal.amount = event.params.usdAmount;
     withdrawal.fee = event.params.fee;
+    withdrawal.processedAt = event.params.timestamp;
     withdrawal.save();
     
     // Update user stats
