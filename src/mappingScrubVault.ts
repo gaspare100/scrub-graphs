@@ -294,11 +294,52 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
     vault.shareValue = shareValueResult.value;
   }
   
+  // Create VaultInfo snapshot for withdrawal (track TVL changes)
+  const infoId = vault.id + "-" + event.params.timestamp.toString();
+  let info = new VaultInfo(infoId);
+  info.vault = vault.id;
+  info.timestamp = event.params.timestamp;
+  
+  // Get current TVL from contract
+  let tvlResult = contract.try_totalVaultValue();
+  info.tvl = tvlResult.reverted ? BigInt.fromI32(0) : tvlResult.value;
+  
+  info.apr = BigInt.fromI32(0);  // APR unchanged on withdrawal
+  info.totalSupplied = currentShares.minus(event.params.shares);  // Use updated shares
+  info.totalBorrowed = BigInt.fromI32(0);
+  info.totalBorrowable = BigInt.fromI32(0);
+  info.lastCompoundTimestamp = event.params.timestamp;
+  info.save();
+  
   vault.save();
 }
 
 export function handleRewardDistributed(event: RewardDistributedEvent): void {
   let vault = getOrCreateVault(event.address);
+  
+  // Calculate APR based on reward and time since last reward
+  let apr = BigInt.fromI32(0);
+  
+  // Get the most recent VaultInfo to calculate time delta
+  const previousInfos = vault.infos.load();
+  if (previousInfos.length > 0) {
+    const lastInfo = previousInfos[previousInfos.length - 1];
+    const timeDelta = event.block.timestamp.minus(lastInfo.timestamp);
+    const secondsInYear = BigInt.fromI32(31536000); // 365 * 24 * 60 * 60
+    
+    // Calculate annualized APR if we have valid data
+    // APR = (rewardAmount / tvl) * (secondsInYear / timeDelta) * 100
+    // Store as basis points (e.g., 1234 = 12.34%)
+    const oldTvl = lastInfo.tvl;
+    if (oldTvl.gt(BigInt.fromI32(0)) && timeDelta.gt(BigInt.fromI32(0))) {
+      // rewardAmount * secondsInYear * 10000 / (oldTvl * timeDelta)
+      apr = event.params.rewardAmount
+        .times(secondsInYear)
+        .times(BigInt.fromI32(10000))
+        .div(oldTvl)
+        .div(timeDelta);
+    }
+  }
   
   // Create reward event
   const rewardId = vault.id + "-reward-" + event.block.timestamp.toString();
@@ -306,7 +347,7 @@ export function handleRewardDistributed(event: RewardDistributedEvent): void {
   reward.vault = vault.id;
   reward.reward = event.params.rewardAmount;
   reward.timestamp = event.block.timestamp;
-  reward.apr = BigInt.fromI32(0);  // Calculate if needed
+  reward.apr = apr;
   reward.save();
   
   // Update vault info
@@ -315,7 +356,7 @@ export function handleRewardDistributed(event: RewardDistributedEvent): void {
   info.vault = vault.id;
   info.timestamp = event.block.timestamp;
   info.tvl = event.params.newTotalVaultValue;
-  info.apr = BigInt.fromI32(0);
+  info.apr = apr;  // Store calculated APR
   info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
   info.totalBorrowed = BigInt.fromI32(0);
   info.totalBorrowable = BigInt.fromI32(0);
