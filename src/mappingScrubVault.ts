@@ -14,6 +14,70 @@ import {
 } from "../generated/ScrubDepositVault/DepositVault";
 import { Vault, VaultDeposit, VaultInfo, VaultReward, VaultUser, VaultWithdraw } from "../generated/schema";
 
+/**
+ * Get or create a vault entity.
+ * For upgraded vaults, VaultInitialized event might not exist.
+ * This creates a basic vault entity that will be populated by config events.
+ */
+function getOrCreateVault(vaultAddress: Address): Vault {
+  const id = vaultAddress.toHex();
+  let vault = Vault.load(id);
+  
+  if (!vault) {
+    log.warning("Creating vault entity for upgraded vault: {}", [id]);
+    vault = new Vault(id);
+    
+    // Set vault type to distinguish from Hover vaults
+    vault.vaultType = "scrub";
+    
+    // Try to read values from contract
+    let contract = DepositVaultContract.bind(vaultAddress);
+    
+    // Read underlying, shareToken, strategy, treasury
+    let underlyingResult = contract.try_stablecoin();
+    vault.underlying = underlyingResult.reverted ? Address.zero() : underlyingResult.value;
+    
+    let shareTokenResult = contract.try_shareToken();
+    vault.shareToken = shareTokenResult.reverted ? Address.zero() : shareTokenResult.value;
+    
+    let strategyResult = contract.try_strategy();
+    vault.strategy = strategyResult.reverted ? Address.zero() : strategyResult.value;
+    
+    let treasuryResult = contract.try_treasury();
+    vault.treasury = treasuryResult.reverted ? Address.zero() : treasuryResult.value;
+    
+    // Initialize counters
+    vault.totalShares = BigInt.fromI32(0);
+    vault.shareValue = BigInt.fromI32(0);
+    vault.totalUsers = BigInt.fromI32(0);
+    vault.totalPendingWithdrawalShares = BigInt.fromI32(0);
+    vault.paused = false;
+    
+    // Read config values from contract
+    let depositFeeResult = contract.try_depositFee();
+    vault.depositFee = depositFeeResult.reverted ? BigInt.fromI32(0) : depositFeeResult.value;
+    
+    let withdrawalFeeResult = contract.try_withdrawalFee();
+    vault.withdrawalFee = withdrawalFeeResult.reverted ? BigInt.fromI32(0) : withdrawalFeeResult.value;
+    
+    let minDepositResult = contract.try_minDeposit();
+    vault.minDeposit = minDepositResult.reverted ? BigInt.fromI32(0) : minDepositResult.value;
+    
+    let minWithdrawalSharesResult = contract.try_minWithdrawalShares();
+    vault.minWithdrawalShares = minWithdrawalSharesResult.reverted ? BigInt.fromI32(0) : minWithdrawalSharesResult.value;
+    
+    // Fields compatible with existing Vault schema
+    vault.decimals = BigInt.fromI32(6); // USDT decimals
+    vault.tokenName = "USDT Vault";     // Display name
+    
+    vault.save();
+    
+    log.info("ScrubVault created from fallback: {}", [id]);
+  }
+  
+  return vault;
+}
+
 function getOrCreateVaultUser(vaultId: string, userAddress: Address): VaultUser {
   const id = vaultId + "-" + userAddress.toHex();
   let vaultUser = VaultUser.load(id);
@@ -80,11 +144,7 @@ export function handleVaultInitialized(event: VaultInitializedEvent): void {
 }
 
 export function handleDepositRequested(event: DepositRequestedEvent): void {
-  let vault = Vault.load(event.address.toHex());
-  if (!vault) {
-    log.warning("Vault not found for deposit: {}", [event.address.toHex()]);
-    return;
-  }
+  let vault = getOrCreateVault(event.address);
   
   // Create deposit entity
   const depositId = event.address.toHex() + "-" + event.params.depositId.toString();
@@ -111,8 +171,7 @@ export function handleDepositRequested(event: DepositRequestedEvent): void {
 }
 
 export function handleDepositProcessed(event: DepositProcessedEvent): void {
-  let vault = Vault.load(event.address.toHex());
-  if (!vault) return;
+  let vault = getOrCreateVault(event.address);
   
   const depositId = event.address.toHex() + "-" + event.params.depositId.toString();
   let deposit = VaultDeposit.load(depositId);
@@ -171,8 +230,7 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
 }
 
 export function handleWithdrawalRequested(event: WithdrawalRequestedEvent): void {
-  let vault = Vault.load(event.address.toHex());
-  if (!vault) return;
+  let vault = getOrCreateVault(event.address);
   
   const withdrawalId = event.address.toHex() + "-" + event.params.withdrawalId.toString();
   let withdrawal = new VaultWithdraw(withdrawalId);
@@ -202,8 +260,7 @@ export function handleWithdrawalRequested(event: WithdrawalRequestedEvent): void
 }
 
 export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void {
-  let vault = Vault.load(event.address.toHex());
-  if (!vault) return;
+  let vault = getOrCreateVault(event.address);
   
   const withdrawalId = event.address.toHex() + "-" + event.params.withdrawalId.toString();
   let withdrawal = VaultWithdraw.load(withdrawalId);
@@ -241,8 +298,7 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
 }
 
 export function handleRewardDistributed(event: RewardDistributedEvent): void {
-  let vault = Vault.load(event.address.toHex());
-  if (!vault) return;
+  let vault = getOrCreateVault(event.address);
   
   // Create reward event
   const rewardId = vault.id + "-reward-" + event.block.timestamp.toString();
@@ -277,8 +333,7 @@ export function handleRewardDistributed(event: RewardDistributedEvent): void {
 
 // Event Handler: DepositFeeUpdated
 export function handleDepositFeeUpdated(event: DepositFeeUpdatedEvent): void {
-  let vault = Vault.load(event.address.toHex());
-  if (!vault) return;
+  let vault = getOrCreateVault(event.address);
   
   vault.depositFee = event.params.newFee;
   vault.save();
@@ -286,8 +341,7 @@ export function handleDepositFeeUpdated(event: DepositFeeUpdatedEvent): void {
 
 // Event Handler: WithdrawalFeeUpdated
 export function handleWithdrawalFeeUpdated(event: WithdrawalFeeUpdatedEvent): void {
-  let vault = Vault.load(event.address.toHex());
-  if (!vault) return;
+  let vault = getOrCreateVault(event.address);
   
   vault.withdrawalFee = event.params.newFee;
   vault.save();
@@ -295,8 +349,7 @@ export function handleWithdrawalFeeUpdated(event: WithdrawalFeeUpdatedEvent): vo
 
 // Event Handler: MinDepositUpdated
 export function handleMinDepositUpdated(event: MinDepositUpdatedEvent): void {
-  let vault = Vault.load(event.address.toHex());
-  if (!vault) return;
+  let vault = getOrCreateVault(event.address);
   
   vault.minDeposit = event.params.newMin;
   vault.save();
@@ -304,8 +357,7 @@ export function handleMinDepositUpdated(event: MinDepositUpdatedEvent): void {
 
 // Event Handler: MinWithdrawalSharesUpdated
 export function handleMinWithdrawalSharesUpdated(event: MinWithdrawalSharesUpdatedEvent): void {
-  let vault = Vault.load(event.address.toHex());
-  if (!vault) return;
+  let vault = getOrCreateVault(event.address);
   
   vault.minWithdrawalShares = event.params.newMin;
   vault.save();
