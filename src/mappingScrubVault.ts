@@ -213,12 +213,16 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
     vault.shareValue = shareValueResult.value;
   }
   
+  // Fetch current total vault value (TVL) from contract for accurate tracking
+  let tvlResult = contract.try_totalVaultValue();
+  const currentTVL = tvlResult.reverted ? event.params.usdAmount : tvlResult.value;
+  
   // Update VaultInfo for charts (compatible with existing schema)
   const infoId = vault.id + "-" + event.params.timestamp.toString();
   let info = new VaultInfo(infoId);
   info.vault = vault.id;
   info.timestamp = event.params.timestamp;
-  info.tvl = event.params.usdAmount;
+  info.tvl = currentTVL; // Use actual total vault value, not just this deposit amount
   info.apr = BigInt.fromI32(0);
   info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
   info.totalBorrowed = BigInt.fromI32(0);
