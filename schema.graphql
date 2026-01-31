@@ -54,6 +54,7 @@ type VaultUser @entity {
   vault: Vault!
   user: Bytes!
   shareBalance: BigInt!
+  pendingWithdrawalShares: BigInt! # Shares locked in pending withdrawals
   pendingDepositCount: BigInt!
   pendingWithdrawalCount: BigInt!
   totalDeposited: BigInt!
