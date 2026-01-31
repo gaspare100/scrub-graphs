@@ -87,6 +87,7 @@ function getOrCreateVaultUser(vaultId: string, userAddress: Address): VaultUser 
     vaultUser.vault = vaultId;
     vaultUser.user = Bytes.fromHexString(userAddress.toHex());
     vaultUser.shareBalance = BigInt.fromI32(0);
+    vaultUser.pendingWithdrawalShares = BigInt.fromI32(0);
     vaultUser.pendingDepositCount = BigInt.fromI32(0);
     vaultUser.pendingWithdrawalCount = BigInt.fromI32(0);
     vaultUser.totalDeposited = BigInt.fromI32(0);
@@ -258,6 +259,7 @@ export function handleWithdrawalRequested(event: WithdrawalRequestedEvent): void
   
   // Update user stats
   let vaultUser = getOrCreateVaultUser(vault.id, event.params.user);
+  vaultUser.pendingWithdrawalShares = vaultUser.pendingWithdrawalShares.plus(event.params.shares);
   vaultUser.pendingWithdrawalCount = vaultUser.pendingWithdrawalCount.plus(BigInt.fromI32(1));
   vaultUser.lastInteractionTimestamp = event.params.timestamp;
   vaultUser.save();
@@ -279,6 +281,7 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
     // Update user stats
     let vaultUser = getOrCreateVaultUser(vault.id, event.params.user);
     vaultUser.shareBalance = vaultUser.shareBalance.minus(event.params.shares);
+    vaultUser.pendingWithdrawalShares = vaultUser.pendingWithdrawalShares.minus(event.params.shares);
     vaultUser.pendingWithdrawalCount = vaultUser.pendingWithdrawalCount.minus(BigInt.fromI32(1));
     vaultUser.totalWithdrawn = vaultUser.totalWithdrawn.plus(event.params.usdAmount);
     vaultUser.lastInteractionTimestamp = event.params.timestamp;
