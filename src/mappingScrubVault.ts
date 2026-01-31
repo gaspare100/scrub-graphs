@@ -15,6 +15,32 @@ import {
 import { Vault, VaultDeposit, VaultInfo, VaultReward, VaultUser, VaultWithdraw } from "../generated/schema";
 
 /**
+ * Get the most recent APR value for a vault.
+ * Used to carry forward APR when creating VaultInfo entries for non-reward events.
+ */
+function getLatestAPR(vaultId: string): BigInt {
+  let vault = Vault.load(vaultId);
+  if (!vault) {
+    return BigInt.fromI32(0);
+  }
+  
+  const infos = vault.infos.load();
+  if (infos.length === 0) {
+    return BigInt.fromI32(0);
+  }
+  
+  // Find the most recent non-zero APR
+  for (let i = infos.length - 1; i >= 0; i--) {
+    const info = infos[i];
+    if (info.apr && info.apr.gt(BigInt.fromI32(0))) {
+      return info.apr;
+    }
+  }
+  
+  return BigInt.fromI32(0);
+}
+
+/**
  * Get or create a vault entity.
  * For upgraded vaults, VaultInitialized event might not exist.
  * This creates a basic vault entity that will be populated by config events.
@@ -218,13 +244,13 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
   let tvlResult = contract.try_totalVaultValue();
   const currentTVL = tvlResult.reverted ? event.params.usdAmount : tvlResult.value;
   
-  // Update VaultInfo for charts (compatible with existing schema)
+  // Update VaultInfo for charts - carry forward last known APR (don't reset to 0)
   const infoId = vault.id + "-" + event.params.timestamp.toString();
   let info = new VaultInfo(infoId);
   info.vault = vault.id;
   info.timestamp = event.params.timestamp;
   info.tvl = currentTVL; // Use actual total vault value, not just this deposit amount
-  info.apr = BigInt.fromI32(0);
+  info.apr = getLatestAPR(vault.id); // Carry forward last known APR instead of resetting to 0
   info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
   info.totalBorrowed = BigInt.fromI32(0);
   info.totalBorrowable = BigInt.fromI32(0);
@@ -311,7 +337,7 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
   let tvlResult = contract.try_totalVaultValue();
   info.tvl = tvlResult.reverted ? BigInt.fromI32(0) : tvlResult.value;
   
-  info.apr = BigInt.fromI32(0);  // APR unchanged on withdrawal
+  info.apr = getLatestAPR(vault.id);  // Carry forward last known APR instead of resetting to 0
   info.totalSupplied = currentShares.minus(event.params.shares);  // Use updated shares
   info.totalBorrowed = BigInt.fromI32(0);
   info.totalBorrowable = BigInt.fromI32(0);
