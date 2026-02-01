@@ -5,6 +5,7 @@ import {
 } from "../generated/templates/WindAndCheck/WindAndCheck";
 
 import { WindAndCheck } from "../generated/templates";
+import { ERC20 } from "../generated/templates/WindAndCheck/ERC20";
 
 import {
   NewVault,
@@ -74,6 +75,17 @@ export function handleNewDeposit(event: Deposit): void {
   vaultDeposit.timestamp = event.block.timestamp;
   vaultDeposit.vault = event.address.toHex();
   vaultDeposit.save();
+
+  // Update vault totalShares from on-chain (vault contract is the share token for WindAndCheck)
+  let vault = Vault.load(event.address.toHex());
+  if (vault) {
+    let shareToken = ERC20.bind(event.address);
+    let totalSupplyResult = shareToken.try_totalSupply();
+    if (!totalSupplyResult.reverted) {
+      vault.totalShares = totalSupplyResult.value;
+      vault.save();
+    }
+  }
 }
 
 export function handleNewWithdraw(event: Withdraw): void {
@@ -90,6 +102,17 @@ export function handleNewWithdraw(event: Withdraw): void {
   vaultWithdraw.timestamp = event.block.timestamp;
   vaultWithdraw.vault = event.address.toHex();
   vaultWithdraw.save();
+
+  // Update vault totalShares from on-chain (vault contract is the share token for WindAndCheck)
+  let vault = Vault.load(event.address.toHex());
+  if (vault) {
+    let shareToken = ERC20.bind(event.address);
+    let totalSupplyResult = shareToken.try_totalSupply();
+    if (!totalSupplyResult.reverted) {
+      vault.totalShares = totalSupplyResult.value;
+      vault.save();
+    }
+  }
 }
 
 export function handleNewReward(event: RewardDistribution): void {
