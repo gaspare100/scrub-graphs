@@ -191,4 +191,6 @@ templates:
           handler: handleNewWithdraw
         - event: RewardDistribution(uint256,uint256)
           handler: handleNewReward
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
       file: ./src/mapping.ts
