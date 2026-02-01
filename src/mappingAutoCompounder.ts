@@ -13,6 +13,34 @@ import {
 } from "../generated/schema";
 
 /**
+ * Get or create a Vault entity
+ */
+function getOrCreateVault(vaultAddress: string): Vault {
+  let vault = Vault.load(vaultAddress);
+  
+  if (!vault) {
+    log.warning("Vault {} not found, creating minimal entity", [vaultAddress]);
+    vault = new Vault(vaultAddress);
+    
+    // Try to get context data if available
+    const context = dataSource.context();
+    vault.underlying = context.getBytes("underlying");
+    vault.decimals = context.getBigInt("decimals");
+    vault.tokenName = context.getString("tokenName");
+    
+    // Initialize totals
+    vault.totalShares = BigInt.fromI32(0);
+    vault.totalUsers = BigInt.fromI32(0);
+    vault.shareValue = BigInt.fromI32(10).pow(18); // Default 1:1
+    vault.paused = false;
+    
+    vault.save();
+  }
+  
+  return vault;
+}
+
+/**
  * Handle Deposit events from AutoCompounder vaults
  * Updates VaultUser totals and creates transaction record
  */
@@ -27,6 +55,9 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
   const vaultAddress = event.address.toHex();
   const userAddress = event.params.user.toHex();
   const decimals = context.getBigInt("decimals").toI32() as u8;
+  
+  // Ensure vault exists
+  const vault = getOrCreateVault(vaultAddress);
   
   // Normalize amount by decimals for display purposes
   const normalizedAmount = event.params.amount.div(
@@ -51,6 +82,8 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
   const vaultUserId = vaultAddress + "-" + userAddress;
   let vaultUser = VaultUser.load(vaultUserId);
   
+  const isNewUser = vaultUser === null;
+  
   if (!vaultUser) {
     vaultUser = new VaultUser(vaultUserId);
     vaultUser.vault = vaultAddress;
@@ -70,10 +103,29 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
   vaultUser.lastInteractionTimestamp = event.block.timestamp;
   vaultUser.save();
 
+  // Update vault totals (handle nullable fields)
+  if (!vault.totalShares) {
+    vault.totalShares = BigInt.fromI32(0);
+  }
+  if (!vault.totalUsers) {
+    vault.totalUsers = BigInt.fromI32(0);
+  }
+  
+  vault.totalShares = vault.totalShares!.plus(event.params.amount);
+  if (isNewUser) {
+    vault.totalUsers = vault.totalUsers!.plus(BigInt.fromI32(1));
+  }
+  vault.save();
+
   log.info("Updated VaultUser {} totalDeposited: {} shareBalance: {}", [
     vaultUserId,
     vaultUser.totalDeposited.toString(),
     vaultUser.shareBalance.toString(),
+  ]);
+  log.info("Updated Vault {} totalShares: {} totalUsers: {}", [
+    vaultAddress,
+    vault.totalShares!.toString(),
+    vault.totalUsers!.toString(),
   ]);
 }
 
@@ -92,6 +144,9 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
   const vaultAddress = event.address.toHex();
   const userAddress = event.params.user.toHex();
   const decimals = context.getBigInt("decimals").toI32() as u8;
+  
+  // Ensure vault exists
+  const vault = getOrCreateVault(vaultAddress);
   
   // Normalize amount by decimals for display purposes
   const normalizedAmount = event.params.amount.div(
@@ -138,10 +193,30 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
   vaultUser.lastInteractionTimestamp = event.block.timestamp;
   vaultUser.save();
 
+  // Update vault totals (handle nullable fields)
+  if (!vault.totalShares) {
+    vault.totalShares = BigInt.fromI32(0);
+  }
+  if (!vault.totalUsers) {
+    vault.totalUsers = BigInt.fromI32(0);
+  }
+  
+  vault.totalShares = vault.totalShares!.minus(event.params.amount);
+  // If user has 0 shares left, decrement totalUsers
+  if (vaultUser.shareBalance.equals(BigInt.fromI32(0))) {
+    vault.totalUsers = vault.totalUsers!.minus(BigInt.fromI32(1));
+  }
+  vault.save();
+
   log.info("Updated VaultUser {} totalWithdrawn: {} shareBalance: {}", [
     vaultUserId,
     vaultUser.totalWithdrawn.toString(),
     vaultUser.shareBalance.toString(),
+  ]);
+  log.info("Updated Vault {} totalShares: {} totalUsers: {}", [
+    vaultAddress,
+    vault.totalShares!.toString(),
+    vault.totalUsers!.toString(),
   ]);
 }
 
