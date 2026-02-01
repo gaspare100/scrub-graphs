@@ -6,9 +6,9 @@ import {
     VaultWithdraw
 } from "../generated/schema";
 import {
+    Compound,
     Deposit,
     Withdraw,
-    Compound,
 } from "../generated/templates/AutoCompounder/AutoCompounder";
 
 /**

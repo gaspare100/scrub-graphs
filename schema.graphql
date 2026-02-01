@@ -86,6 +86,9 @@ type Vault @entity {
   totalPendingWithdrawalShares: BigInt
   paused: Boolean
   
+  # Compound tracking
+  lastCompoundTimestamp: BigInt
+  
   # Configurable fees and limits (ScrubVault)
   depositFee: BigInt
   withdrawalFee: BigInt
