@@ -1,0 +1,156 @@
+import { BigInt, log, dataSource } from "@graphprotocol/graph-ts";
+import {
+  Deposit,
+  Withdraw,
+  RewardDistribution,
+} from "../generated/templates/WindAndCheck/WindAndCheck";
+import {
+  Vault,
+  VaultDeposit,
+  VaultWithdraw,
+  VaultReward,
+  VaultUser,
+} from "../generated/schema";
+
+/**
+ * Handle Deposit events from AutoCompounder vaults
+ * Updates VaultUser totals and creates transaction record
+ */
+export function handleAutoCompounderDeposit(event: Deposit): void {
+  log.info("AutoCompounder deposit detected for vault {} user {} amount {}", [
+    event.address.toHex(),
+    event.params.user.toHex(),
+    event.params.amount.toString(),
+  ]);
+
+  const context = dataSource.context();
+  const vaultAddress = event.address.toHex();
+  const userAddress = event.params.user.toHex();
+  const decimals = context.getBigInt("decimals").toI32() as u8;
+  
+  // Normalize amount by decimals for display purposes
+  const normalizedAmount = event.params.amount.div(
+    BigInt.fromI32(10).pow(decimals)
+  );
+
+  // Create deposit transaction record
+  const depositId = event.transaction.hash.toHex() + "-" + event.logIndex.toString();
+  let vaultDeposit = new VaultDeposit(depositId);
+  vaultDeposit.user = event.params.user;
+  vaultDeposit.amount = normalizedAmount;
+  vaultDeposit.timestamp = event.block.timestamp;
+  vaultDeposit.vault = vaultAddress;
+  vaultDeposit.requestedAt = event.block.timestamp;
+  vaultDeposit.processedAt = event.block.timestamp; // AutoCompounder deposits are instant
+  vaultDeposit.status = "processed";
+  vaultDeposit.fee = BigInt.fromI32(0); // AutoCompounder has no deposit fee
+  vaultDeposit.sharesMinted = event.params.amount; // 1:1 shares for AutoCompounder
+  vaultDeposit.save();
+
+  // Update or create VaultUser entity
+  const vaultUserId = vaultAddress + "-" + userAddress;
+  let vaultUser = VaultUser.load(vaultUserId);
+  
+  if (!vaultUser) {
+    vaultUser = new VaultUser(vaultUserId);
+    vaultUser.vault = vaultAddress;
+    vaultUser.user = event.params.user;
+    vaultUser.shareBalance = BigInt.fromI32(0);
+    vaultUser.pendingWithdrawalShares = BigInt.fromI32(0);
+    vaultUser.pendingDepositCount = BigInt.fromI32(0);
+    vaultUser.pendingWithdrawalCount = BigInt.fromI32(0);
+    vaultUser.totalDeposited = BigInt.fromI32(0);
+    vaultUser.totalWithdrawn = BigInt.fromI32(0);
+    vaultUser.lastInteractionTimestamp = event.block.timestamp;
+  }
+
+  // Update totals (use raw amount, not normalized, to match on-chain precision)
+  vaultUser.totalDeposited = vaultUser.totalDeposited.plus(event.params.amount);
+  vaultUser.shareBalance = vaultUser.shareBalance.plus(event.params.amount);
+  vaultUser.lastInteractionTimestamp = event.block.timestamp;
+  vaultUser.save();
+
+  log.info("Updated VaultUser {} totalDeposited: {} shareBalance: {}", [
+    vaultUserId,
+    vaultUser.totalDeposited.toString(),
+    vaultUser.shareBalance.toString(),
+  ]);
+}
+
+/**
+ * Handle Withdraw events from AutoCompounder vaults
+ * Updates VaultUser totals and creates transaction record
+ */
+export function handleAutoCompounderWithdraw(event: Withdraw): void {
+  log.info("AutoCompounder withdraw detected for vault {} user {} amount {}", [
+    event.address.toHex(),
+    event.params.user.toHex(),
+    event.params.amount.toString(),
+  ]);
+
+  const context = dataSource.context();
+  const vaultAddress = event.address.toHex();
+  const userAddress = event.params.user.toHex();
+  const decimals = context.getBigInt("decimals").toI32() as u8;
+  
+  // Normalize amount by decimals for display purposes
+  const normalizedAmount = event.params.amount.div(
+    BigInt.fromI32(10).pow(decimals)
+  );
+
+  // Create withdrawal transaction record
+  const withdrawId = event.transaction.hash.toHex() + "-" + event.logIndex.toString();
+  let vaultWithdraw = new VaultWithdraw(withdrawId);
+  vaultWithdraw.user = event.params.user;
+  vaultWithdraw.amount = normalizedAmount;
+  vaultWithdraw.timestamp = event.block.timestamp;
+  vaultWithdraw.vault = vaultAddress;
+  vaultWithdraw.requestedAt = event.block.timestamp;
+  vaultWithdraw.processedAt = event.block.timestamp; // AutoCompounder withdrawals are instant
+  vaultWithdraw.status = "processed";
+  vaultWithdraw.fee = BigInt.fromI32(0); // AutoCompounder has no withdrawal fee
+  vaultWithdraw.shares = event.params.amount; // Shares burned
+  vaultWithdraw.canBeApprovedAt = event.block.timestamp;
+  vaultWithdraw.save();
+
+  // Update VaultUser entity
+  const vaultUserId = vaultAddress + "-" + userAddress;
+  let vaultUser = VaultUser.load(vaultUserId);
+  
+  if (!vaultUser) {
+    // This shouldn't happen, but create it just in case
+    log.warning("VaultUser {} not found for withdrawal, creating new", [vaultUserId]);
+    vaultUser = new VaultUser(vaultUserId);
+    vaultUser.vault = vaultAddress;
+    vaultUser.user = event.params.user;
+    vaultUser.shareBalance = BigInt.fromI32(0);
+    vaultUser.pendingWithdrawalShares = BigInt.fromI32(0);
+    vaultUser.pendingDepositCount = BigInt.fromI32(0);
+    vaultUser.pendingWithdrawalCount = BigInt.fromI32(0);
+    vaultUser.totalDeposited = BigInt.fromI32(0);
+    vaultUser.totalWithdrawn = BigInt.fromI32(0);
+    vaultUser.lastInteractionTimestamp = event.block.timestamp;
+  }
+
+  // Update totals (use raw amount, not normalized, to match on-chain precision)
+  vaultUser.totalWithdrawn = vaultUser.totalWithdrawn.plus(event.params.amount);
+  vaultUser.shareBalance = vaultUser.shareBalance.minus(event.params.amount);
+  vaultUser.lastInteractionTimestamp = event.block.timestamp;
+  vaultUser.save();
+
+  log.info("Updated VaultUser {} totalWithdrawn: {} shareBalance: {}", [
+    vaultUserId,
+    vaultUser.totalWithdrawn.toString(),
+    vaultUser.shareBalance.toString(),
+  ]);
+}
+
+/**
+ * Handle RewardDistribution events (kept for compatibility)
+ */
+export function handleNewReward(event: RewardDistribution): void {
+  log.info("Reward distribution detected - skipping (deprecated)", []);
+  // This handler is kept for backward compatibility but does nothing
+  // Rewards are now tracked via VaultInfo from WindAndCheckAggregator
+  return;
+}
