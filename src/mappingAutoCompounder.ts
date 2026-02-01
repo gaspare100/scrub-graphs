@@ -1,16 +1,15 @@
-import { BigInt, log, dataSource } from "@graphprotocol/graph-ts";
+import { BigInt, dataSource, log } from "@graphprotocol/graph-ts";
 import {
-  Deposit,
-  Withdraw,
-  RewardDistribution,
-} from "../generated/templates/WindAndCheck/WindAndCheck";
-import {
-  Vault,
-  VaultDeposit,
-  VaultWithdraw,
-  VaultReward,
-  VaultUser,
+    Vault,
+    VaultDeposit,
+    VaultUser,
+    VaultWithdraw
 } from "../generated/schema";
+import {
+    Deposit,
+    Withdraw,
+    Compound,
+} from "../generated/templates/AutoCompounder/AutoCompounder";
 
 /**
  * Get or create a Vault entity
@@ -75,7 +74,7 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
   vaultDeposit.processedAt = event.block.timestamp; // AutoCompounder deposits are instant
   vaultDeposit.status = "processed";
   vaultDeposit.fee = BigInt.fromI32(0); // AutoCompounder has no deposit fee
-  vaultDeposit.sharesMinted = event.params.amount; // 1:1 shares for AutoCompounder
+  vaultDeposit.sharesMinted = event.params.shares; // Shares minted from event
   vaultDeposit.save();
 
   // Update or create VaultUser entity
@@ -99,7 +98,7 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
 
   // Update totals (use raw amount, not normalized, to match on-chain precision)
   vaultUser.totalDeposited = vaultUser.totalDeposited.plus(event.params.amount);
-  vaultUser.shareBalance = vaultUser.shareBalance.plus(event.params.amount);
+  vaultUser.shareBalance = vaultUser.shareBalance.plus(event.params.shares);
   vaultUser.lastInteractionTimestamp = event.block.timestamp;
   vaultUser.save();
 
@@ -111,7 +110,7 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
     vault.totalUsers = BigInt.fromI32(0);
   }
   
-  vault.totalShares = vault.totalShares!.plus(event.params.amount);
+  vault.totalShares = vault.totalShares!.plus(event.params.shares);
   if (isNewUser) {
     vault.totalUsers = vault.totalUsers!.plus(BigInt.fromI32(1));
   }
@@ -164,7 +163,7 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
   vaultWithdraw.processedAt = event.block.timestamp; // AutoCompounder withdrawals are instant
   vaultWithdraw.status = "processed";
   vaultWithdraw.fee = BigInt.fromI32(0); // AutoCompounder has no withdrawal fee
-  vaultWithdraw.shares = event.params.amount; // Shares burned
+  vaultWithdraw.shares = event.params.shares; // Shares burned from event
   vaultWithdraw.canBeApprovedAt = event.block.timestamp;
   vaultWithdraw.save();
 
@@ -189,7 +188,7 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
 
   // Update totals (use raw amount, not normalized, to match on-chain precision)
   vaultUser.totalWithdrawn = vaultUser.totalWithdrawn.plus(event.params.amount);
-  vaultUser.shareBalance = vaultUser.shareBalance.minus(event.params.amount);
+  vaultUser.shareBalance = vaultUser.shareBalance.minus(event.params.shares);
   vaultUser.lastInteractionTimestamp = event.block.timestamp;
   vaultUser.save();
 
@@ -201,7 +200,7 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
     vault.totalUsers = BigInt.fromI32(0);
   }
   
-  vault.totalShares = vault.totalShares!.minus(event.params.amount);
+  vault.totalShares = vault.totalShares!.minus(event.params.shares);
   // If user has 0 shares left, decrement totalUsers
   if (vaultUser.shareBalance.equals(BigInt.fromI32(0))) {
     vault.totalUsers = vault.totalUsers!.minus(BigInt.fromI32(1));
@@ -221,11 +220,26 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
 }
 
 /**
- * Handle RewardDistribution events (kept for compatibility)
+ * Handle Compound events from AutoCompounder vaults
+ * Updates lastCompoundTimestamp on Vault
  */
-export function handleNewReward(event: RewardDistribution): void {
-  log.info("Reward distribution detected - skipping (deprecated)", []);
-  // This handler is kept for backward compatibility but does nothing
-  // Rewards are now tracked via VaultInfo from WindAndCheckAggregator
-  return;
+export function handleAutoCompounderCompound(event: Compound): void {
+  const vaultAddress = event.address.toHex();
+  
+  log.info("AutoCompounder compound detected for vault {} at timestamp {}", [
+    vaultAddress,
+    event.params.timestamp.toString(),
+  ]);
+
+  // Ensure vault exists
+  const vault = getOrCreateVault(vaultAddress);
+  
+  // Update last compound timestamp
+  vault.lastCompoundTimestamp = event.params.timestamp;
+  vault.save();
+
+  log.info("Updated Vault {} lastCompoundTimestamp: {}", [
+    vaultAddress,
+    event.params.timestamp.toString(),
+  ]);
 }
