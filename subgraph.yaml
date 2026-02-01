@@ -141,8 +141,6 @@ dataSources:
       abis:
         - name: DepositVault
           file: ./abis/DepositVault.json
-        - name: ERC20
-          file: ./abis/ERC20.json
       eventHandlers:
         - event: VaultInitialized(indexed address,indexed address,indexed address,address,address,uint256)
           handler: handleVaultInitialized
@@ -182,8 +180,6 @@ templates:
       abis:
         - name: WindAndCheck
           file: ./abis/WindAndCheck.json
-        - name: ERC20
-          file: ./abis/ERC20.json
       eventHandlers:
         - event: Deposit(indexed address,uint256)
           handler: handleNewDeposit
@@ -191,6 +187,4 @@ templates:
           handler: handleNewWithdraw
         - event: RewardDistribution(uint256,uint256)
           handler: handleNewReward
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
       file: ./src/mapping.ts
