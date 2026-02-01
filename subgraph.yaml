@@ -163,6 +163,31 @@ dataSources:
         - event: MinWithdrawalSharesUpdated(uint256,uint256)
           handler: handleMinWithdrawalSharesUpdated
 templates:
+  - name: AutoCompounder
+    kind: ethereum/contract
+    network: kava
+    source:
+      abi: AutoCompounder
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - VaultDeposit
+        - VaultWithdraw
+        - Vault
+        - VaultUser
+      abis:
+        - name: AutoCompounder
+          file: ./abis/AutoCompounder.json
+      eventHandlers:
+        - event: Deposit(indexed address,uint256,uint256,uint256)
+          handler: handleAutoCompounderDeposit
+        - event: Withdraw(indexed address,uint256,uint256,uint256)
+          handler: handleAutoCompounderWithdraw
+        - event: Compound(uint256,uint256,uint256)
+          handler: handleAutoCompounderCompound
+      file: ./src/mappingAutoCompounder.ts
   - name: WindAndCheck
     kind: ethereum/contract
     network: kava
