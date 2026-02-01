@@ -182,6 +182,8 @@ templates:
       abis:
         - name: WindAndCheck
           file: ./abis/WindAndCheck.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: Deposit(indexed address,uint256)
           handler: handleNewDeposit
