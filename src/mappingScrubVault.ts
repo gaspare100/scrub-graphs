@@ -12,6 +12,7 @@ import {
     WithdrawalProcessed as WithdrawalProcessedEvent,
     WithdrawalRequested as WithdrawalRequestedEvent,
 } from "../generated/ScrubDepositVault/DepositVault";
+import { ERC20 } from "../generated/ScrubDepositVault/ERC20";
 import { Vault, VaultDeposit, VaultInfo, VaultReward, VaultUser, VaultWithdraw } from "../generated/schema";
 
 /**
@@ -213,7 +214,14 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
     let vaultUser = getOrCreateVaultUser(vault.id, event.params.user);
     const isNewUser = vaultUser.totalDeposited.equals(BigInt.fromI32(0));
     
-    vaultUser.shareBalance = vaultUser.shareBalance.plus(event.params.sharesMinted);
+    // Query actual on-chain balance
+    if (vault.shareToken) {
+      let shareTokenContract = ERC20.bind(Address.fromBytes(vault.shareToken as Bytes));
+      let userBalanceResult = shareTokenContract.try_balanceOf(event.params.user);
+      if (!userBalanceResult.reverted) {
+        vaultUser.shareBalance = userBalanceResult.value;
+      }
+    }
     vaultUser.pendingDepositCount = vaultUser.pendingDepositCount.minus(BigInt.fromI32(1));
     // Add to totalDeposited when deposit is processed (gross amount = amount + fee)
     const depositAmount = deposit.amount ? deposit.amount as BigInt : BigInt.fromI32(0);
@@ -229,9 +237,14 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
     }
   }
   
-  // Update vault totals (initialize if null for backward compatibility)
-  const currentShares = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
-  vault.totalShares = currentShares.plus(event.params.sharesMinted);
+  // Refresh vault state from on-chain data
+  if (vault.shareToken) {
+    let shareTokenContract = ERC20.bind(Address.fromBytes(vault.shareToken as Bytes));
+    let totalSupplyResult = shareTokenContract.try_totalSupply();
+    if (!totalSupplyResult.reverted) {
+      vault.totalShares = totalSupplyResult.value;
+    }
+  }
   
   // Update shareValue from contract
   let contract = DepositVaultContract.bind(event.address);
@@ -306,7 +319,14 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
     
     // Update user stats
     let vaultUser = getOrCreateVaultUser(vault.id, event.params.user);
-    vaultUser.shareBalance = vaultUser.shareBalance.minus(event.params.shares);
+    // Query actual on-chain balance
+    if (vault.shareToken) {
+      let shareTokenContractUser = ERC20.bind(Address.fromBytes(vault.shareToken as Bytes));
+      let userBalanceResult = shareTokenContractUser.try_balanceOf(event.params.user);
+      if (!userBalanceResult.reverted) {
+        vaultUser.shareBalance = userBalanceResult.value;
+      }
+    }
     vaultUser.pendingWithdrawalShares = vaultUser.pendingWithdrawalShares.minus(event.params.shares);
     vaultUser.pendingWithdrawalCount = vaultUser.pendingWithdrawalCount.minus(BigInt.fromI32(1));
     vaultUser.totalWithdrawn = vaultUser.totalWithdrawn.plus(event.params.usdAmount);
@@ -314,10 +334,15 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
     vaultUser.save();
   }
   
-  // Update vault totals
-  const currentShares = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
+  // Refresh vault state from on-chain data
+  if (vault.shareToken) {
+    let shareTokenContract = ERC20.bind(Address.fromBytes(vault.shareToken as Bytes));
+    let totalSupplyResult = shareTokenContract.try_totalSupply();
+    if (!totalSupplyResult.reverted) {
+      vault.totalShares = totalSupplyResult.value;
+    }
+  }
   const currentPendingShares = vault.totalPendingWithdrawalShares ? vault.totalPendingWithdrawalShares as BigInt : BigInt.fromI32(0);
-  vault.totalShares = currentShares.minus(event.params.shares);
   vault.totalPendingWithdrawalShares = currentPendingShares.minus(event.params.shares);
   
   // Update shareValue from contract
@@ -338,7 +363,7 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
   info.tvl = tvlResult.reverted ? BigInt.fromI32(0) : tvlResult.value;
   
   info.apr = getLatestAPR(vault.id);  // Carry forward last known APR instead of resetting to 0
-  info.totalSupplied = currentShares.minus(event.params.shares);  // Use updated shares
+  info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);  // Use on-chain totalShares
   info.totalBorrowed = BigInt.fromI32(0);
   info.totalBorrowable = BigInt.fromI32(0);
   info.lastCompoundTimestamp = event.params.timestamp;

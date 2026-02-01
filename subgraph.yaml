@@ -141,6 +141,8 @@ dataSources:
       abis:
         - name: DepositVault
           file: ./abis/DepositVault.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: VaultInitialized(indexed address,indexed address,indexed address,address,address,uint256)
           handler: handleVaultInitialized
