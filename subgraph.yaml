@@ -5,8 +5,8 @@ schema:
 features:
   - grafting
 graft:
-  base: Qmao3uyccX9ewLcbWL6o3LXq7rTDCibJB6cjyxeUKdJKYE
-  block: 19087541
+  base: QmeuL6jrg8DcXnf8efsSF6TC1S7ZHFPfnThQEfdZWLCn79
+  block: 19183000
 dataSources:
   - kind: ethereum/contract
     name: WindAndCheckAggregator
