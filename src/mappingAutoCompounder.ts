@@ -109,11 +109,34 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
     vaultUser.lastInteractionTimestamp = event.block.timestamp;
   }
 
-  // Try to bind contract - may fail for old contract versions
+  // AutoCompounder contract was upgraded around block 19183000
+  // Old versions have incompatible ABI - skip contract calls
+  const UPGRADE_BLOCK = BigInt.fromI32(19183000);
+  
+  if (event.block.number.lt(UPGRADE_BLOCK)) {
+    // Old contract version - use event-based tracking only
+    log.info("Using event-based tracking for pre-upgrade AutoCompounder deposit at block {}", [
+      event.block.number.toString()
+    ]);
+    vaultUser.totalDeposited = vaultUser.totalDeposited.plus(normalizedAmount);
+    vaultUser.shareBalance = vaultUser.shareBalance.plus(event.params.shares);
+    vaultUser.lastInteractionTimestamp = event.block.timestamp;
+    vaultUser.save();
+    
+    // Update vault user count
+    if (isNewUser) {
+      if (!vault.totalUsers) {
+        vault.totalUsers = BigInt.fromI32(0);
+      }
+      vault.totalUsers = vault.totalUsers!.plus(BigInt.fromI32(1));
+    }
+    vault.save();
+    return;
+  }
+  
+  // Upgraded contract - fetch current state from contract
   const autoCompounderContract = AutoCompounder.bind(event.address);
   
-  // Try fetching user totals from contract (upgraded contracts only)
-  // Old contract versions don't have these methods, so we'll accumulate from events
   const totalSupplyResult = autoCompounderContract.try_totalSupply();
   
   if (!totalSupplyResult.reverted) {
@@ -226,10 +249,36 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
     vaultUser.lastInteractionTimestamp = event.block.timestamp;
   }
 
-  // Try to bind contract - may fail for old contract versions
+  // AutoCompounder contract was upgraded around block 19183000  
+  // Old versions have incompatible ABI - skip contract calls
+  const UPGRADE_BLOCK = BigInt.fromI32(19183000);
+  
+  if (event.block.number.lt(UPGRADE_BLOCK)) {
+    // Old contract version - use event-based tracking only
+    log.info("Using event-based tracking for pre-upgrade AutoCompounder withdraw at block {}", [
+      event.block.number.toString()
+    ]);
+    vaultUser.totalWithdrawn = vaultUser.totalWithdrawn.plus(normalizedAmount);
+    vaultUser.shareBalance = vaultUser.shareBalance.minus(event.params.shares);
+    vaultUser.lastInteractionTimestamp = event.block.timestamp;
+    vaultUser.save();
+    
+    // Update vault user count if balance is zero
+    if (vaultUser.shareBalance.equals(BigInt.fromI32(0))) {
+      if (!vault.totalUsers) {
+        vault.totalUsers = BigInt.fromI32(0);
+      }
+      if (vault.totalUsers!.gt(BigInt.fromI32(0))) {
+        vault.totalUsers = vault.totalUsers!.minus(BigInt.fromI32(1));
+      }
+    }
+    vault.save();
+    return;
+  }
+  
+  // Upgraded contract - fetch current state from contract
   const autoCompounderContract = AutoCompounder.bind(event.address);
   
-  // Try fetching contract state (upgraded contracts only)
   const totalSupplyResult = autoCompounderContract.try_totalSupply();
   
   if (!totalSupplyResult.reverted) {
