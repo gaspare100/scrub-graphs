@@ -243,6 +243,7 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
   // Fetch current total vault value (TVL) from contract for accurate tracking
   let tvlResult = contract.try_totalVaultValue();
   const currentTVL = tvlResult.reverted ? event.params.usdAmount : tvlResult.value;
+  vault.tvl = currentTVL; // Update vault-level TVL field
   
   // Update VaultInfo for charts - carry forward last known APR (don't reset to 0)
   const infoId = vault.id + "-" + event.params.timestamp.toString();
