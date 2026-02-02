@@ -45,14 +45,26 @@ function getOrCreateVault(vaultAddress: string): Vault {
  * Updates VaultUser totals and creates transaction record
  */
 export function handleAutoCompounderDeposit(event: Deposit): void {
+  const vaultAddress = event.address.toHex();
+  
+  // Skip known incompatible AutoCompounder vaults that cause ABI errors
+  // These vaults were deployed with different contract versions
+  const INCOMPATIBLE_VAULTS: string[] = [
+    // Add problematic vault addresses here if needed
+  ];
+  
+  if (INCOMPATIBLE_VAULTS.includes(vaultAddress.toLowerCase())) {
+    log.warning("Skipping deposit for incompatible AutoCompounder vault {}", [vaultAddress]);
+    return;
+  }
+  
   log.info("AutoCompounder deposit detected for vault {} user {} amount {}", [
-    event.address.toHex(),
+    vaultAddress,
     event.params.user.toHex(),
     event.params.amount.toString(),
   ]);
 
   const context = dataSource.context();
-  const vaultAddress = event.address.toHex();
   const userAddress = event.params.user.toHex();
   const decimals = context.getBigInt("decimals").toI32() as u8;
   
@@ -97,46 +109,43 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
     vaultUser.lastInteractionTimestamp = event.block.timestamp;
   }
 
-  // FETCH current values from contract (don't accumulate!)
+  // Try to bind contract - may fail for old contract versions
   const autoCompounderContract = AutoCompounder.bind(event.address);
   
-  // Defensive: handle potential ABI mismatches gracefully
-  const depositedResult = autoCompounderContract.try_deposited(event.params.user);
-  if (!depositedResult.reverted) {
-    vaultUser.totalDeposited = depositedResult.value;
-  } else {
-    log.warning("Failed to fetch deposited for user {} in vault {}, using event accumulation", [
-      userAddress,
-      vaultAddress
-    ]);
-    // Fallback: accumulate from events
-    vaultUser.totalDeposited = vaultUser.totalDeposited.plus(normalizedAmount);
-  }
+  // Try fetching user totals from contract (upgraded contracts only)
+  // Old contract versions don't have these methods, so we'll accumulate from events
+  const totalSupplyResult = autoCompounderContract.try_totalSupply();
   
-  const withdrawnResult = autoCompounderContract.try_withdrawn(event.params.user);
-  if (!withdrawnResult.reverted) {
-    vaultUser.totalWithdrawn = withdrawnResult.value;
+  if (!totalSupplyResult.reverted) {
+    // Contract is responsive - try fetching user data
+    const depositedResult = autoCompounderContract.try_deposited(event.params.user);
+    if (!depositedResult.reverted) {
+      vaultUser.totalDeposited = depositedResult.value;
+    } else {
+      // Method doesn't exist (old contract version) - accumulate from events
+      vaultUser.totalDeposited = vaultUser.totalDeposited.plus(normalizedAmount);
+    }
+    
+    const withdrawnResult = autoCompounderContract.try_withdrawn(event.params.user);
+    if (!withdrawnResult.reverted) {
+      vaultUser.totalWithdrawn = withdrawnResult.value;
+    }
+    
+    vault.totalShares = totalSupplyResult.value;
+    
+    const totalCollateralResult = autoCompounderContract.try_totalCollateral();
+    if (!totalCollateralResult.reverted) {
+      vault.tvl = totalCollateralResult.value;
+    }
   } else {
-    log.warning("Failed to fetch withdrawn for user {} in vault {}", [
-      userAddress,
-      vaultAddress
-    ]);
+    // Contract doesn't respond (old version or incompatible ABI)
+    log.warning("AutoCompounder contract {} not responsive, using event-based tracking", [vaultAddress]);
+    vaultUser.totalDeposited = vaultUser.totalDeposited.plus(normalizedAmount);
   }
   
   vaultUser.shareBalance = vaultUser.shareBalance.plus(event.params.shares);
   vaultUser.lastInteractionTimestamp = event.block.timestamp;
-  vaultUser.save();
-
-  // Fetch current vault state from contract
-  const totalSupplyResult = autoCompounderContract.try_totalSupply();
-  const totalCollateralResult = autoCompounderContract.try_totalCollateral();
-  
-  if (!totalSupplyResult.reverted) {
-    vault.totalShares = totalSupplyResult.value;
-  }
-  if (!totalCollateralResult.reverted) {
-    vault.tvl = totalCollateralResult.value;
-  }
+  vaultUser.save()
   
   // Update totalUsers count
   if (!vault.totalUsers) {
@@ -217,46 +226,42 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
     vaultUser.lastInteractionTimestamp = event.block.timestamp;
   }
 
-  // FETCH current values from contract (don't accumulate!)
+  // Try to bind contract - may fail for old contract versions
   const autoCompounderContract = AutoCompounder.bind(event.address);
   
-  // Defensive: handle potential ABI mismatches gracefully
-  const depositedResult = autoCompounderContract.try_deposited(event.params.user);
-  if (!depositedResult.reverted) {
-    vaultUser.totalDeposited = depositedResult.value;
-  } else {
-    log.warning("Failed to fetch deposited for user {} in vault {} during withdrawal", [
-      userAddress,
-      vaultAddress
-    ]);
-  }
+  // Try fetching contract state (upgraded contracts only)
+  const totalSupplyResult = autoCompounderContract.try_totalSupply();
   
-  const withdrawnResult = autoCompounderContract.try_withdrawn(event.params.user);
-  if (!withdrawnResult.reverted) {
-    vaultUser.totalWithdrawn = withdrawnResult.value;
+  if (!totalSupplyResult.reverted) {
+    // Contract is responsive - try fetching user data
+    const depositedResult = autoCompounderContract.try_deposited(event.params.user);
+    if (!depositedResult.reverted) {
+      vaultUser.totalDeposited = depositedResult.value;
+    }
+    
+    const withdrawnResult = autoCompounderContract.try_withdrawn(event.params.user);
+    if (!withdrawnResult.reverted) {
+      vaultUser.totalWithdrawn = withdrawnResult.value;
+    } else {
+      // Method doesn't exist (old contract version) - accumulate from events
+      vaultUser.totalWithdrawn = vaultUser.totalWithdrawn.plus(normalizedAmount);
+    }
+    
+    vault.totalShares = totalSupplyResult.value;
+    
+    const totalCollateralResult = autoCompounderContract.try_totalCollateral();
+    if (!totalCollateralResult.reverted) {
+      vault.tvl = totalCollateralResult.value;
+    }
   } else {
-    log.warning("Failed to fetch withdrawn for user {} in vault {}, using event accumulation", [
-      userAddress,
-      vaultAddress
-    ]);
-    // Fallback: accumulate from events
+    // Contract doesn't respond (old version or incompatible ABI)
+    log.warning("AutoCompounder contract {} not responsive during withdrawal, using event-based tracking", [vaultAddress]);
     vaultUser.totalWithdrawn = vaultUser.totalWithdrawn.plus(normalizedAmount);
   }
   
   vaultUser.shareBalance = vaultUser.shareBalance.minus(event.params.shares);
   vaultUser.lastInteractionTimestamp = event.block.timestamp;
   vaultUser.save();
-
-  // Fetch current vault state from contract
-  const totalSupplyResult = autoCompounderContract.try_totalSupply();
-  const totalCollateralResult = autoCompounderContract.try_totalCollateral();
-  
-  if (!totalSupplyResult.reverted) {
-    vault.totalShares = totalSupplyResult.value;
-  }
-  if (!totalCollateralResult.reverted) {
-    vault.tvl = totalCollateralResult.value;
-  }
   
   // Update totalUsers count
   if (!vault.totalUsers) {
