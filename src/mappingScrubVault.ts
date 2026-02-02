@@ -396,6 +396,10 @@ export function handleRewardDistributed(event: RewardDistributedEvent): void {
   info.lastCompoundTimestamp = event.block.timestamp;
   info.save();
   
+  // Update vault entity with latest TVL and APR (fixes null vault.tvl issue)
+  vault.tvl = event.params.newTotalVaultValue;
+  vault.apr = apr;
+  
   // Update shareValue from contract after reward distribution
   let contract = DepositVaultContract.bind(event.address);
   let shareValueResult = contract.try_shareValue();

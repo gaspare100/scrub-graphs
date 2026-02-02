@@ -6,7 +6,7 @@ features:
   - grafting
 graft:
   base: Qmao3uyccX9ewLcbWL6o3LXq7rTDCibJB6cjyxeUKdJKYE
-  block: {{ graft_block }}
+  block: 19087541
 dataSources:
   - kind: ethereum/contract
     name: WindAndCheckAggregator
@@ -126,7 +126,7 @@ dataSources:
     source:
       address: "0x7BFf6c730dA681dF03364c955B165576186370Bc"
       abi: DepositVault
-      startBlock: {{ scrubvault_start_block }}
+      startBlock: 19087542
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
