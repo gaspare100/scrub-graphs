@@ -99,14 +99,28 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
 
   // FETCH current values from contract (don't accumulate!)
   const autoCompounderContract = AutoCompounder.bind(event.address);
-  const depositedResult = autoCompounderContract.try_deposited(event.params.user);
-  const withdrawnResult = autoCompounderContract.try_withdrawn(event.params.user);
   
+  // Defensive: handle potential ABI mismatches gracefully
+  const depositedResult = autoCompounderContract.try_deposited(event.params.user);
   if (!depositedResult.reverted) {
     vaultUser.totalDeposited = depositedResult.value;
+  } else {
+    log.warning("Failed to fetch deposited for user {} in vault {}, using event accumulation", [
+      userAddress,
+      vaultAddress
+    ]);
+    // Fallback: accumulate from events
+    vaultUser.totalDeposited = vaultUser.totalDeposited.plus(normalizedAmount);
   }
+  
+  const withdrawnResult = autoCompounderContract.try_withdrawn(event.params.user);
   if (!withdrawnResult.reverted) {
     vaultUser.totalWithdrawn = withdrawnResult.value;
+  } else {
+    log.warning("Failed to fetch withdrawn for user {} in vault {}", [
+      userAddress,
+      vaultAddress
+    ]);
   }
   
   vaultUser.shareBalance = vaultUser.shareBalance.plus(event.params.shares);
@@ -205,14 +219,28 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
 
   // FETCH current values from contract (don't accumulate!)
   const autoCompounderContract = AutoCompounder.bind(event.address);
-  const depositedResult = autoCompounderContract.try_deposited(event.params.user);
-  const withdrawnResult = autoCompounderContract.try_withdrawn(event.params.user);
   
+  // Defensive: handle potential ABI mismatches gracefully
+  const depositedResult = autoCompounderContract.try_deposited(event.params.user);
   if (!depositedResult.reverted) {
     vaultUser.totalDeposited = depositedResult.value;
+  } else {
+    log.warning("Failed to fetch deposited for user {} in vault {} during withdrawal", [
+      userAddress,
+      vaultAddress
+    ]);
   }
+  
+  const withdrawnResult = autoCompounderContract.try_withdrawn(event.params.user);
   if (!withdrawnResult.reverted) {
     vaultUser.totalWithdrawn = withdrawnResult.value;
+  } else {
+    log.warning("Failed to fetch withdrawn for user {} in vault {}, using event accumulation", [
+      userAddress,
+      vaultAddress
+    ]);
+    // Fallback: accumulate from events
+    vaultUser.totalWithdrawn = vaultUser.totalWithdrawn.plus(normalizedAmount);
   }
   
   vaultUser.shareBalance = vaultUser.shareBalance.minus(event.params.shares);
