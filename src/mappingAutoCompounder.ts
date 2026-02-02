@@ -2,7 +2,6 @@ import { BigInt, dataSource, log } from "@graphprotocol/graph-ts";
 import {
     Vault,
     VaultDeposit,
-    VaultInfo,
     VaultUser,
     VaultWithdraw
 } from "../generated/schema";
@@ -121,19 +120,9 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
   if (!totalSupplyResult.reverted) {
     vault.totalShares = totalSupplyResult.value;
   }
-  
-  // Create VaultInfo snapshot for TVL tracking in UI (unique ID per event to prevent collisions)
-  const infoId = vaultAddress + "-" + event.transaction.hash.toHex() + "-" + event.logIndex.toString();
-  let info = new VaultInfo(infoId);
-  info.vault = vaultAddress;
-  info.timestamp = event.block.timestamp;
-  info.tvl = totalCollateralResult.reverted ? BigInt.fromI32(0) : totalCollateralResult.value;
-  info.apr = BigInt.fromI32(0); // AutoCompounder doesn't track APR via events
-  info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
-  info.totalBorrowed = BigInt.fromI32(0);
-  info.totalBorrowable = BigInt.fromI32(0);
-  info.lastCompoundTimestamp = vault.lastCompoundTimestamp ? vault.lastCompoundTimestamp as BigInt : BigInt.fromI32(0);
-  info.save();
+  if (!totalCollateralResult.reverted) {
+    vault.tvl = totalCollateralResult.value;
+  }
   
   // Update totalUsers count
   if (!vault.totalUsers) {
@@ -237,19 +226,9 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
   if (!totalSupplyResult.reverted) {
     vault.totalShares = totalSupplyResult.value;
   }
-  
-  // Create VaultInfo snapshot for TVL tracking in UI (unique ID per event to prevent collisions)
-  const infoId = vaultAddress + "-" + event.transaction.hash.toHex() + "-" + event.logIndex.toString();
-  let info = new VaultInfo(infoId);
-  info.vault = vaultAddress;
-  info.timestamp = event.block.timestamp;
-  info.tvl = totalCollateralResult.reverted ? BigInt.fromI32(0) : totalCollateralResult.value;
-  info.apr = BigInt.fromI32(0); // AutoCompounder doesn't track APR via events
-  info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
-  info.totalBorrowed = BigInt.fromI32(0);
-  info.totalBorrowable = BigInt.fromI32(0);
-  info.lastCompoundTimestamp = vault.lastCompoundTimestamp ? vault.lastCompoundTimestamp as BigInt : BigInt.fromI32(0);
-  info.save();
+  if (!totalCollateralResult.reverted) {
+    vault.tvl = totalCollateralResult.value;
+  }
   
   // Update totalUsers count
   if (!vault.totalUsers) {
@@ -299,19 +278,9 @@ export function handleAutoCompounderCompound(event: Compound): void {
   if (!totalSupplyResult.reverted) {
     vault.totalShares = totalSupplyResult.value;
   }
-  
-  // Create VaultInfo snapshot for TVL tracking in UI
-  const infoId = vaultAddress + "-" + event.transaction.hash.toHex() + "-" + event.logIndex.toString();
-  let info = new VaultInfo(infoId);
-  info.vault = vaultAddress;
-  info.timestamp = event.params.timestamp;
-  info.tvl = totalCollateralResult.reverted ? BigInt.fromI32(0) : totalCollateralResult.value;
-  info.apr = BigInt.fromI32(0); // AutoCompounder doesn't track APR via events
-  info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
-  info.totalBorrowed = BigInt.fromI32(0);
-  info.totalBorrowable = BigInt.fromI32(0);
-  info.lastCompoundTimestamp = event.params.timestamp;
-  info.save();
+  if (!totalCollateralResult.reverted) {
+    vault.tvl = totalCollateralResult.value;
+  }
   
   vault.save();
 
