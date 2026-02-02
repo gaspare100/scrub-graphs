@@ -86,6 +86,10 @@ type Vault @entity {
   totalPendingWithdrawalShares: BigInt
   paused: Boolean
   
+  # Current vault state (updated on every event)
+  tvl: BigInt                      # Total Value Locked - fetched from contract
+  apr: BigInt                      # Annual Percentage Rate (if tracked)
+  
   # Compound tracking
   lastCompoundTimestamp: BigInt
   
