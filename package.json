@@ -15,7 +15,10 @@
     "deploy-local": "graph deploy scrubinvest --ipfs http://127.0.0.1:5001 --node http://127.0.0.1:8020",
     "create-scrubvault": "graph create --node http://127.0.0.1:8020 scrubvault",
     "deploy-scrubvault": "graph codegen && graph build && graph deploy --node http://127.0.0.1:8020 --ipfs http://127.0.0.1:5001 scrubvault",
-    "deploy-graft": "ts-node scripts/deploy-grafting.ts"
+    "create-scrubvault-test": "graph create --node http://127.0.0.1:8020 scrubvault-test",
+    "deploy-scrubvault-test": "graph codegen && graph build && graph deploy --node http://127.0.0.1:8020 --ipfs http://127.0.0.1:5001 scrubvault-test",
+    "deploy-graft": "ts-node scripts/deploy-grafting.ts",
+    "deploy-graft-test": "ts-node scripts/deploy-grafting-test.ts"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.62.0",
