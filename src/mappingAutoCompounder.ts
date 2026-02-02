@@ -2,6 +2,7 @@ import { BigInt, dataSource, log } from "@graphprotocol/graph-ts";
 import {
     Vault,
     VaultDeposit,
+    VaultInfo,
     VaultUser,
     VaultWithdraw
 } from "../generated/schema";
@@ -113,15 +114,31 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
   vaultUser.lastInteractionTimestamp = event.block.timestamp;
   vaultUser.save();
 
-  // Update vault totals (handle nullable fields)
-  if (!vault.totalShares) {
-    vault.totalShares = BigInt.fromI32(0);
+  // Fetch current vault state from contract
+  const totalSupplyResult = autoCompounderContract.try_totalSupply();
+  const totalCollateralResult = autoCompounderContract.try_totalCollateral();
+  
+  if (!totalSupplyResult.reverted) {
+    vault.totalShares = totalSupplyResult.value;
   }
+  
+  // Create VaultInfo snapshot for TVL tracking in UI (unique ID per event to prevent collisions)
+  const infoId = vaultAddress + "-" + event.transaction.hash.toHex() + "-" + event.logIndex.toString();
+  let info = new VaultInfo(infoId);
+  info.vault = vaultAddress;
+  info.timestamp = event.block.timestamp;
+  info.tvl = totalCollateralResult.reverted ? BigInt.fromI32(0) : totalCollateralResult.value;
+  info.apr = BigInt.fromI32(0); // AutoCompounder doesn't track APR via events
+  info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
+  info.totalBorrowed = BigInt.fromI32(0);
+  info.totalBorrowable = BigInt.fromI32(0);
+  info.lastCompoundTimestamp = vault.lastCompoundTimestamp ? vault.lastCompoundTimestamp as BigInt : BigInt.fromI32(0);
+  info.save();
+  
+  // Update totalUsers count
   if (!vault.totalUsers) {
     vault.totalUsers = BigInt.fromI32(0);
   }
-  
-  vault.totalShares = vault.totalShares!.plus(event.params.shares);
   if (isNewUser) {
     vault.totalUsers = vault.totalUsers!.plus(BigInt.fromI32(1));
   }
@@ -134,8 +151,8 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
   ]);
   log.info("Updated Vault {} totalShares: {} totalUsers: {}", [
     vaultAddress,
-    vault.totalShares!.toString(),
-    vault.totalUsers!.toString(),
+    vault.totalShares ? vault.totalShares!.toString() : "null",
+    vault.totalUsers ? vault.totalUsers!.toString() : "null",
   ]);
 }
 
@@ -213,15 +230,31 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
   vaultUser.lastInteractionTimestamp = event.block.timestamp;
   vaultUser.save();
 
-  // Update vault totals (handle nullable fields)
-  if (!vault.totalShares) {
-    vault.totalShares = BigInt.fromI32(0);
+  // Fetch current vault state from contract
+  const totalSupplyResult = autoCompounderContract.try_totalSupply();
+  const totalCollateralResult = autoCompounderContract.try_totalCollateral();
+  
+  if (!totalSupplyResult.reverted) {
+    vault.totalShares = totalSupplyResult.value;
   }
+  
+  // Create VaultInfo snapshot for TVL tracking in UI (unique ID per event to prevent collisions)
+  const infoId = vaultAddress + "-" + event.transaction.hash.toHex() + "-" + event.logIndex.toString();
+  let info = new VaultInfo(infoId);
+  info.vault = vaultAddress;
+  info.timestamp = event.block.timestamp;
+  info.tvl = totalCollateralResult.reverted ? BigInt.fromI32(0) : totalCollateralResult.value;
+  info.apr = BigInt.fromI32(0); // AutoCompounder doesn't track APR via events
+  info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
+  info.totalBorrowed = BigInt.fromI32(0);
+  info.totalBorrowable = BigInt.fromI32(0);
+  info.lastCompoundTimestamp = vault.lastCompoundTimestamp ? vault.lastCompoundTimestamp as BigInt : BigInt.fromI32(0);
+  info.save();
+  
+  // Update totalUsers count
   if (!vault.totalUsers) {
     vault.totalUsers = BigInt.fromI32(0);
   }
-  
-  vault.totalShares = vault.totalShares!.minus(event.params.shares);
   // If user has 0 shares left, decrement totalUsers
   if (vaultUser.shareBalance.equals(BigInt.fromI32(0))) {
     vault.totalUsers = vault.totalUsers!.minus(BigInt.fromI32(1));
@@ -235,14 +268,14 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
   ]);
   log.info("Updated Vault {} totalShares: {} totalUsers: {}", [
     vaultAddress,
-    vault.totalShares!.toString(),
-    vault.totalUsers!.toString(),
+    vault.totalShares ? vault.totalShares!.toString() : "null",
+    vault.totalUsers ? vault.totalUsers!.toString() : "null",
   ]);
 }
 
 /**
  * Handle Compound events from AutoCompounder vaults
- * Updates lastCompoundTimestamp on Vault
+ * Updates lastCompoundTimestamp and fetches current vault state
  */
 export function handleAutoCompounderCompound(event: Compound): void {
   const vaultAddress = event.address.toHex();
@@ -257,10 +290,34 @@ export function handleAutoCompounderCompound(event: Compound): void {
   
   // Update last compound timestamp
   vault.lastCompoundTimestamp = event.params.timestamp;
+  
+  // Fetch current vault state from contract
+  const autoCompounderContract = AutoCompounder.bind(event.address);
+  const totalSupplyResult = autoCompounderContract.try_totalSupply();
+  const totalCollateralResult = autoCompounderContract.try_totalCollateral();
+  
+  if (!totalSupplyResult.reverted) {
+    vault.totalShares = totalSupplyResult.value;
+  }
+  
+  // Create VaultInfo snapshot for TVL tracking in UI
+  const infoId = vaultAddress + "-" + event.transaction.hash.toHex() + "-" + event.logIndex.toString();
+  let info = new VaultInfo(infoId);
+  info.vault = vaultAddress;
+  info.timestamp = event.params.timestamp;
+  info.tvl = totalCollateralResult.reverted ? BigInt.fromI32(0) : totalCollateralResult.value;
+  info.apr = BigInt.fromI32(0); // AutoCompounder doesn't track APR via events
+  info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
+  info.totalBorrowed = BigInt.fromI32(0);
+  info.totalBorrowable = BigInt.fromI32(0);
+  info.lastCompoundTimestamp = event.params.timestamp;
+  info.save();
+  
   vault.save();
 
-  log.info("Updated Vault {} lastCompoundTimestamp: {}", [
+  log.info("Updated Vault {} lastCompoundTimestamp: {} totalShares: {}", [
     vaultAddress,
     event.params.timestamp.toString(),
+    vault.totalShares ? vault.totalShares!.toString() : "null",
   ]);
 }
