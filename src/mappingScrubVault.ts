@@ -350,23 +350,25 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
 export function handleRewardDistributed(event: RewardDistributedEvent): void {
   let vault = getOrCreateVault(event.address);
   
-  // Calculate APR based on reward and time since last reward
-  let apr = BigInt.fromI32(0);
+  // Calculate APR using multiple methods for stability
+  let instantAPR = BigInt.fromI32(0);  // APR based on this reward only
+  let rollingAPR = BigInt.fromI32(0);  // APR based on recent rewards (30 days)
+  let totalAPR = BigInt.fromI32(0);    // APR since vault inception
   
-  // Get the most recent VaultInfo to calculate time delta
+  const secondsInYear = BigInt.fromI32(31536000); // 365 * 24 * 60 * 60
+  const thirtyDays = BigInt.fromI32(2592000);     // 30 * 24 * 60 * 60
+  
+  // Get the most recent VaultInfo to calculate time delta for instant APR
   const previousInfos = vault.infos.load();
   if (previousInfos.length > 0) {
     const lastInfo = previousInfos[previousInfos.length - 1];
     const timeDelta = event.block.timestamp.minus(lastInfo.timestamp);
-    const secondsInYear = BigInt.fromI32(31536000); // 365 * 24 * 60 * 60
     
-    // Calculate annualized APR if we have valid data
-    // APR = (rewardAmount / tvl) * (secondsInYear / timeDelta) * 100
-    // Store as basis points (e.g., 1234 = 12.34%)
+    // Calculate instant APR (annualized from this single reward)
     const oldTvl = lastInfo.tvl;
     if (oldTvl.gt(BigInt.fromI32(0)) && timeDelta.gt(BigInt.fromI32(0))) {
-      // rewardAmount * secondsInYear * 10000 / (oldTvl * timeDelta)
-      apr = event.params.rewardAmount
+      // instantAPR = (rewardAmount / oldTVL) * (secondsInYear / timeDelta) * 10000
+      instantAPR = event.params.rewardAmount
         .times(secondsInYear)
         .times(BigInt.fromI32(10000))
         .div(oldTvl)
@@ -374,29 +376,115 @@ export function handleRewardDistributed(event: RewardDistributedEvent): void {
     }
   }
   
-  // Create reward event
+  // Calculate rolling 30-day APR (more stable)
+  const thirtyDaysAgo = event.block.timestamp.minus(thirtyDays);
+  const allRewards = vault.rewards.load();
+  
+  let recentRewards = BigInt.fromI32(0);
+  let oldestRecentTimestamp = event.block.timestamp;
+  let earliestTVL = event.params.newTotalVaultValue;
+  
+  // Sum all rewards from last 30 days
+  for (let i = allRewards.length - 1; i >= 0; i--) {
+    const reward = allRewards[i];
+    if (reward.timestamp.ge(thirtyDaysAgo)) {
+      recentRewards = recentRewards.plus(reward.reward);
+      oldestRecentTimestamp = reward.timestamp;
+      
+      // Try to get TVL from that time period
+      const rewardInfos = vault.infos.load();
+      for (let j = 0; j < rewardInfos.length; j++) {
+        if (rewardInfos[j].timestamp.equals(reward.timestamp)) {
+          earliestTVL = rewardInfos[j].tvl;
+          break;
+        }
+      }
+    }
+  }
+  
+  // Add current reward
+  recentRewards = recentRewards.plus(event.params.rewardAmount);
+  
+  // Calculate rolling APR if we have rewards in the period
+  const rollingTimeDelta = event.block.timestamp.minus(oldestRecentTimestamp);
+  if (earliestTVL.gt(BigInt.fromI32(0)) && rollingTimeDelta.gt(BigInt.fromI32(0))) {
+    // rollingAPR = (totalRecentRewards / avgTVL) * (secondsInYear / timePeriod) * 10000
+    const avgTVL = earliestTVL.plus(event.params.newTotalVaultValue).div(BigInt.fromI32(2));
+    rollingAPR = recentRewards
+      .times(secondsInYear)
+      .times(BigInt.fromI32(10000))
+      .div(avgTVL)
+      .div(rollingTimeDelta);
+  }
+  
+  // Calculate total APR since inception
+  let totalRewards = BigInt.fromI32(0);
+  let firstTimestamp = event.block.timestamp;
+  let firstTVL = event.params.newTotalVaultValue;
+  
+  for (let i = 0; i < allRewards.length; i++) {
+    totalRewards = totalRewards.plus(allRewards[i].reward);
+    if (i === 0) {
+      firstTimestamp = allRewards[i].timestamp;
+      // Try to get first TVL
+      const firstInfos = vault.infos.load();
+      for (let j = 0; j < firstInfos.length; j++) {
+        if (firstInfos[j].timestamp.equals(firstTimestamp)) {
+          firstTVL = firstInfos[j].tvl;
+          break;
+        }
+      }
+    }
+  }
+  
+  totalRewards = totalRewards.plus(event.params.rewardAmount);
+  
+  const totalTimeDelta = event.block.timestamp.minus(firstTimestamp);
+  if (firstTVL.gt(BigInt.fromI32(0)) && totalTimeDelta.gt(BigInt.fromI32(0))) {
+    const avgTotalTVL = firstTVL.plus(event.params.newTotalVaultValue).div(BigInt.fromI32(2));
+    totalAPR = totalRewards
+      .times(secondsInYear)
+      .times(BigInt.fromI32(10000))
+      .div(avgTotalTVL)
+      .div(totalTimeDelta);
+  }
+  
+  // Use the most appropriate APR:
+  // - If we have 30+ days of data, use rolling APR (most stable)
+  // - Otherwise use total APR (best estimate)
+  // - Fall back to instant APR if nothing else available
+  let apr = instantAPR;
+  if (rollingAPR.gt(BigInt.fromI32(0)) && rollingTimeDelta.ge(thirtyDays.div(BigInt.fromI32(2)))) {
+    // Use rolling APR if we have at least 15 days of data
+    apr = rollingAPR;
+  } else if (totalAPR.gt(BigInt.fromI32(0)) && totalTimeDelta.ge(BigInt.fromI32(604800))) {
+    // Use total APR if we have at least 7 days of data
+    apr = totalAPR;
+  }
+  
+  // Create reward event (store instant APR for historical reference)
   const rewardId = vault.id + "-reward-" + event.block.timestamp.toString();
   let reward = new VaultReward(rewardId);
   reward.vault = vault.id;
   reward.reward = event.params.rewardAmount;
   reward.timestamp = event.block.timestamp;
-  reward.apr = apr;
+  reward.apr = instantAPR;  // Store instant APR in reward for reference
   reward.save();
   
-  // Update vault info
+  // Update vault info (store the smoothed APR)
   const infoId = vault.id + "-" + event.block.timestamp.toString();
   let info = new VaultInfo(infoId);
   info.vault = vault.id;
   info.timestamp = event.block.timestamp;
   info.tvl = event.params.newTotalVaultValue;
-  info.apr = apr;  // Store calculated APR
+  info.apr = apr;  // Store smoothed APR for display
   info.totalSupplied = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
   info.totalBorrowed = BigInt.fromI32(0);
   info.totalBorrowable = BigInt.fromI32(0);
   info.lastCompoundTimestamp = event.block.timestamp;
   info.save();
   
-  // Update vault entity with latest TVL and APR (fixes null vault.tvl issue)
+  // Update vault entity with latest TVL and smoothed APR
   vault.tvl = event.params.newTotalVaultValue;
   vault.apr = apr;
   
