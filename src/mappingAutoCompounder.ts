@@ -6,6 +6,7 @@ import {
     VaultWithdraw
 } from "../generated/schema";
 import {
+    AutoCompounder,
     Compound,
     Deposit,
     Withdraw,
@@ -96,8 +97,18 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
     vaultUser.lastInteractionTimestamp = event.block.timestamp;
   }
 
-  // Update totals (use raw amount, not normalized, to match on-chain precision)
-  vaultUser.totalDeposited = vaultUser.totalDeposited.plus(event.params.amount);
+  // FETCH current values from contract (don't accumulate!)
+  const autoCompounderContract = AutoCompounder.bind(event.address);
+  const depositedResult = autoCompounderContract.try_deposited(event.params.user);
+  const withdrawnResult = autoCompounderContract.try_withdrawn(event.params.user);
+  
+  if (!depositedResult.reverted) {
+    vaultUser.totalDeposited = depositedResult.value;
+  }
+  if (!withdrawnResult.reverted) {
+    vaultUser.totalWithdrawn = withdrawnResult.value;
+  }
+  
   vaultUser.shareBalance = vaultUser.shareBalance.plus(event.params.shares);
   vaultUser.lastInteractionTimestamp = event.block.timestamp;
   vaultUser.save();
@@ -186,8 +197,18 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
     vaultUser.lastInteractionTimestamp = event.block.timestamp;
   }
 
-  // Update totals (use raw amount, not normalized, to match on-chain precision)
-  vaultUser.totalWithdrawn = vaultUser.totalWithdrawn.plus(event.params.amount);
+  // FETCH current values from contract (don't accumulate!)
+  const autoCompounderContract = AutoCompounder.bind(event.address);
+  const depositedResult = autoCompounderContract.try_deposited(event.params.user);
+  const withdrawnResult = autoCompounderContract.try_withdrawn(event.params.user);
+  
+  if (!depositedResult.reverted) {
+    vaultUser.totalDeposited = depositedResult.value;
+  }
+  if (!withdrawnResult.reverted) {
+    vaultUser.totalWithdrawn = withdrawnResult.value;
+  }
+  
   vaultUser.shareBalance = vaultUser.shareBalance.minus(event.params.shares);
   vaultUser.lastInteractionTimestamp = event.block.timestamp;
   vaultUser.save();
