@@ -336,6 +336,7 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
   // Get current TVL from contract
   let tvlResult = contract.try_totalVaultValue();
   info.tvl = tvlResult.reverted ? BigInt.fromI32(0) : tvlResult.value;
+  vault.tvl = info.tvl; // Update vault-level TVL field
   
   info.apr = getLatestAPR(vault.id);  // Carry forward last known APR instead of resetting to 0
   info.totalSupplied = currentShares.minus(event.params.shares);  // Use updated shares
