@@ -166,9 +166,9 @@ dataSources:
     name: ScrubPoint
     network: kava
     source:
-      address: "0x7A48cD5f0AF2232f08066101b04E5fDd1F1aC435"
+      address: "0x0000000000000000000000000000000000000000" # TODO: Update after deployment
       abi: ScrubPoint
-      startBlock: 19209042
+      startBlock: 1 # TODO: Update after deployment
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -177,8 +177,6 @@ dataSources:
       entities:
         - ScrubPointMint
         - ScrubPointTransfer
-        - ScrubPointHolder
-        - ScrubPointStats
       abis:
         - name: ScrubPoint
           file: ./abis/ScrubPoint.json
@@ -189,18 +187,18 @@ dataSources:
     name: ScrubVaultCave
     network: kava
     source:
-      address: "0x4C6537DF1e633F75b054e3Fb094f99a66b37A103"
+      address: "0x0000000000000000000000000000000000000000" # TODO: Update after deployment
       abi: ScrubVaultCave
-      startBlock: 19209044
+      startBlock: 1 # TODO: Update after deployment
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/mappingScrubVaultCave.ts
+      file: ./src/mappingScrubCave.ts
       entities:
         - CaveDeposit
         - CaveWithdrawal
-        - CavePointPurchase
+        - CavePurchase
         - CaveUsdtClaim
         - CavePriceUpdate
         - CaveInventoryDeposit
