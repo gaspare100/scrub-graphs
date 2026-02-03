@@ -196,3 +196,151 @@ type MatchedBet @entity {
   layUser: Bytes!
   amount: BigInt!
 }
+
+# ==================== ScrubPoint ====================
+
+type ScrubPointMint @entity {
+  id: ID! # txHash-logIndex
+  recipient: Bytes!
+  amount: BigInt!
+  totalSupply: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type ScrubPointTransfer @entity {
+  id: ID! # txHash-logIndex
+  from: Bytes!
+  to: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type ScrubPointHolder @entity {
+  id: ID! # userAddress
+  address: Bytes!
+  balance: BigInt!
+  totalReceived: BigInt!
+  totalSent: BigInt!
+  firstSeenAt: BigInt!
+  lastActivityAt: BigInt!
+}
+
+type ScrubPointStats @entity {
+  id: ID! # "singleton"
+  totalSupply: BigInt!
+  totalHolders: Int!
+  totalMints: Int!
+  totalTransfers: Int!
+  firstMintAt: BigInt!
+  lastActivityAt: BigInt!
+}
+
+# ==================== ScrubVault Cave ====================
+
+type CaveDeposit @entity {
+  id: ID! # txHash-logIndex
+  user: CaveUser!
+  pointAmount: BigInt!
+  sharesReceived: BigInt!
+  totalSharesAfter: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type CaveWithdrawal @entity {
+  id: ID! # txHash-logIndex
+  user: CaveUser!
+  sharesBurned: BigInt!
+  pointsReceived: BigInt!
+  totalSharesAfter: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type CavePointPurchase @entity {
+  id: ID! # txHash-logIndex
+  buyer: CaveUser!
+  pointAmount: BigInt!
+  usdtPaid: BigInt!
+  pricePerToken: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type CaveUsdtClaim @entity {
+  id: ID! # txHash-logIndex
+  user: CaveUser!
+  amount: BigInt!
+  totalClaimedByUser: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type CavePriceUpdate @entity {
+  id: ID! # txHash-logIndex
+  oldPrice: BigInt!
+  newPrice: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type CaveInventoryDeposit @entity {
+  id: ID! # txHash-logIndex
+  owner: Bytes!
+  amount: BigInt!
+  totalInventoryAfter: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type CaveUser @entity {
+  id: ID! # userAddress
+  address: Bytes!
+  totalDeposits: BigInt!
+  totalDepositCount: Int!
+  totalWithdrawals: BigInt!
+  totalWithdrawalCount: Int!
+  currentShares: BigInt!
+  totalPointsPurchased: BigInt!
+  totalUsdtSpent: BigInt!
+  purchaseCount: Int!
+  totalUsdtClaimed: BigInt!
+  claimCount: Int!
+  firstActivityAt: BigInt!
+  lastActivityAt: BigInt!
+  deposits: [CaveDeposit!]! @derivedFrom(field: "user")
+  withdrawals: [CaveWithdrawal!]! @derivedFrom(field: "user")
+  purchases: [CavePointPurchase!]! @derivedFrom(field: "buyer")
+  claims: [CaveUsdtClaim!]! @derivedFrom(field: "user")
+}
+
+type CaveStats @entity {
+  id: ID! # "singleton"
+  totalShares: BigInt!
+  totalDeposits: BigInt!
+  totalWithdrawals: BigInt!
+  totalInventory: BigInt!
+  totalPointsSold: BigInt!
+  totalUsdtCollected: BigInt!
+  uniqueDepositors: Int!
+  uniqueBuyers: Int!
+  uniqueClaimers: Int!
+  totalDepositCount: Int!
+  totalWithdrawalCount: Int!
+  totalPurchaseCount: Int!
+  totalClaimCount: Int!
+  currentPrice: BigInt!
+  priceUpdateCount: Int!
+  firstActivityAt: BigInt!
+  lastActivityAt: BigInt!
+}
