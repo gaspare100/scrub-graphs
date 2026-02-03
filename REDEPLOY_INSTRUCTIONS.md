@@ -1,8 +1,154 @@
-# Subgraph Redeployment with Complete Timestamp Tracking
+# Subgraph Redeployment - Force Withdrawal Fix
 
-## What's Being Added
+**Date**: February 3, 2026  
+**Issue**: Force-processed withdrawals showing as pending with wrong amounts  
+**Fix**: Update timestamp field when deposits/withdrawals are processed
 
-The subgraph already has the schema and mappings for complete timestamp tracking, but they haven't been deployed yet. This will add:
+## Changes Made
+
+### 1. Withdrawal Processing (`handleWithdrawalProcessed`)
+- ✅ Now updates `timestamp` field when withdrawal is processed
+- ✅ Ensures transaction history shows correct processing time
+- ✅ Displays correct amounts (after fees) in UI
+
+### 2. Deposit Processing (`handleDepositProcessed`)  
+- ✅ Also updates `timestamp` field when deposit is processed
+- ✅ Proactive fix to prevent same issue with deposits
+- ✅ Maintains consistency across both transaction types
+
+## Deployment Steps
+
+### Step 1: Navigate to Subgraph Directory
+
+```bash
+cd /Users/gasparemarchese/scrub/scrub-graphs
+```
+
+### Step 2: Build Subgraph
+
+```bash
+# Generate TypeScript types from schema
+pnpm run codegen
+
+# Compile AssemblyScript to WASM
+pnpm run build
+```
+
+**Expected output:**
+```
+✔ Apply migrations
+✔ Load subgraph from subgraph.yaml
+  Compile data source: ScrubDepositVault => build/ScrubDepositVault/ScrubDepositVault.wasm
+✔ Compile subgraph
+  Copy schema file build/schema.graphql
+  Write subgraph file build/subgraph.yaml
+  Write subgraph manifest build/subgraph.yaml
+✔ Write compiled subgraph to build/
+
+Build completed: build/subgraph.yaml
+```
+
+### Step 3: Deploy to The Graph
+
+```bash
+pnpm run deploy
+```
+
+**What happens:**
+1. Uploads new mapping code to The Graph
+2. Triggers re-indexing of all historical events
+3. Updates all processed deposits/withdrawals with correct timestamps
+
+**Expected time:** 5-10 minutes for complete re-indexing
+
+### Step 4: Monitor Deployment
+
+Watch the deployment progress at:
+https://thegraph.com/studio/subgraph/scrubvault
+
+**Check for:**
+- ✅ Syncing status: "Synced"
+- ✅ Index health: "Healthy"
+- ✅ Latest block indexed matches current chain height
+
+### Step 5: Verify Fix
+
+Query the specific force-processed withdrawal:
+
+```bash
+curl -X POST https://subgraph.scrub.money/subgraphs/name/scrubvault \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "{ vaultWithdraws(where: { id: \"0x7bff6c730da681df03364c955b165576186370bc-0\" }) { id user status shares amount fee requestedAt processedAt timestamp canBeApprovedAt } }"
+  }'
+```
+
+**Expected response:**
+```json
+{
+  "data": {
+    "vaultWithdraws": [{
+      "id": "0x7bff6c730da681df03364c955b165576186370bc-0",
+      "user": "0xd47d2f1543cdae1284f20705a32b1362422cb652",
+      "status": "processed",
+      "shares": "18000000000000000000",
+      "amount": "17060000",
+      "fee": "1000000",
+      "requestedAt": "1738428893",
+      "processedAt": "1738512906",
+      "timestamp": "1738512906",  // ✅ Should match processedAt
+      "canBeApprovedAt": "1739033693"
+    }]
+  }
+}
+```
+
+### Step 6: Test in UI
+
+**Admin UI** (scrubvault-l7vkv.ondigitalocean.app/vault-management):
+
+1. Go to "All Withdrawals" section
+2. Find withdrawal ID `0` for user `0xd47d...b652`
+3. Verify:
+   - ✅ Status badge is green (processed)
+   - ✅ Amount shows $17.06 (not $18.00)
+   - ✅ Fee shows $1.00
+   - ✅ Timestamp shows Feb 2, 2026 15:15 (processing time, not Jan 31)
+
+**Earn UI** (earn/scrubvault/0x7BFf6c730dA681dF03364c955B165576186370Bc):
+
+1. Connect wallet as `0xd47d...b652`
+2. View transaction history
+3. Verify withdrawal shows:
+   - ✅ Green "✓ Completed" badge
+   - ✅ Completed timestamp: Feb 2, 2026
+   - ✅ Amount: $17.06
+   - ✅ Fee: $1.00
+
+## Post-Deployment Checks
+
+See detailed verification queries in FORCE_WITHDRAWAL_FIX.md
+
+## Files Changed
+
+1. `src/mappingScrubVault.ts`
+   - Line 210: Added `deposit.timestamp = event.params.timestamp;`
+   - Line 306: Added `withdrawal.timestamp = event.params.timestamp;`
+
+2. `../scrubvault/apps/api/src/modules/vault/vault.service.ts`
+   - Line 527: Changed query to `orderBy: requestedAt`
+   - Line 537: Added `processedAt` field
+
+## Testing Checklist
+
+- [ ] Subgraph builds without errors
+- [ ] Deployment completes successfully  
+- [ ] Subgraph shows "Synced" status
+- [ ] Force-processed withdrawal shows correct data
+- [ ] Admin UI shows correct amounts/timestamps
+- [ ] Earn UI shows correct amounts/timestamps
+
+See FORCE_WITHDRAWAL_FIX.md for complete details.
 
 ### VaultDeposit Fields
 - ✅ `requestedAt` - When deposit was requested
