@@ -1,26 +1,23 @@
 import {
-  Deposit,
-  RewardDistribution,
-  Withdraw,
+    Deposit,
+    RewardDistribution,
+    Withdraw,
 } from "../generated/templates/WindAndCheck/WindAndCheck";
 
-import { WindAndCheck } from "../generated/templates";
+import { AutoCompounder, WindAndCheck } from "../generated/templates";
 
+import { BigInt, dataSource, DataSourceContext, log } from "@graphprotocol/graph-ts";
 import {
-  NewVault,
-  UpdateVault,
+    NewVault,
+    UpdateVault,
 } from "../generated/WindAndCheckAggregator/WindAndCheckAggregator";
 import {
-  Lock,
-  Vault,
-  VaultDeposit,
-  VaultInfo,
-  VaultReward,
-  VaultWithdraw,
-  Vote,
+    Vault,
+    VaultDeposit,
+    VaultInfo,
+    VaultReward,
+    VaultWithdraw
 } from "../generated/schema";
-import { BigInt, Bytes, DataSourceContext, log } from "@graphprotocol/graph-ts";
-import { dataSource } from "@graphprotocol/graph-ts";
 
 export function handleNewVault(event: NewVault): void {
   log.info("New vault detected!", []);
@@ -37,7 +34,12 @@ export function handleNewVault(event: NewVault): void {
   context.setBigInt("decimals", vault.decimals);
   context.setBytes("underlying", vault.underlying);
   context.setString("tokenName", vault.tokenName);
+  
+  // Create both templates - the vault will emit events matching its type
   WindAndCheck.createWithContext(event.params.vault, context);
+  AutoCompounder.createWithContext(event.params.vault, context);
+  
+  log.info("Created data sources for vault {}", [event.params.vault.toHex()]);
 }
 
 export function handleUpdateVault(event: UpdateVault): void {
