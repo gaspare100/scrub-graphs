@@ -11,6 +11,9 @@ import {
     Deposit,
     Withdraw,
 } from "../generated/templates/AutoCompounder/AutoCompounder";
+import {
+    RewardDistribution,
+} from "../generated/templates/WindAndCheck/WindAndCheck";
 
 /**
  * Get or create a Vault entity
@@ -373,4 +376,13 @@ export function handleAutoCompounderCompound(event: Compound): void {
     event.params.timestamp.toString(),
     vault.totalShares ? vault.totalShares!.toString() : "null",
   ]);
+}
+
+/**
+ * Handle RewardDistribution events from WindAndCheck vaults
+ * This function is currently disabled (early return) but needed for event handler mapping
+ */
+export function handleNewReward(event: RewardDistribution): void {
+  log.info("New reward detected for WindAndCheck vault!", []);
+  return; // Disabled - not tracking rewards currently
 }
