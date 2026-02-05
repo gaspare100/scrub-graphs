@@ -209,6 +209,27 @@ type ScrubPointMint @entity {
   transactionHash: Bytes!
 }
 
+type ScrubPointBurn @entity {
+  id: ID! # txHash-logIndex
+  burner: Bytes!
+  amount: BigInt!
+  totalSupply: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type ScrubPointForceBurn @entity {
+  id: ID! # txHash-logIndex
+  from: Bytes! # Address that had tokens burned
+  burner: Bytes! # Owner who executed force burn
+  amount: BigInt!
+  totalSupply: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
 type ScrubPointTransfer @entity {
   id: ID! # txHash-logIndex
   from: Bytes!
@@ -225,6 +246,7 @@ type ScrubPointHolder @entity {
   balance: BigInt!
   totalReceived: BigInt!
   totalSent: BigInt!
+  totalBurned: BigInt! # Added to track burned amounts
   firstSeenAt: BigInt!
   lastActivityAt: BigInt!
 }
@@ -234,6 +256,8 @@ type ScrubPointStats @entity {
   totalSupply: BigInt!
   totalHolders: Int!
   totalMints: Int!
+  totalBurns: Int! # Added to track total burns
+  totalForceBurns: Int! # Added to track total force burns
   totalTransfers: Int!
   firstMintAt: BigInt!
   lastActivityAt: BigInt!
