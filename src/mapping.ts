@@ -28,6 +28,7 @@ export function handleNewVault(event: NewVault): void {
   vault.underlying = event.params.underlying;
   vault.decimals = event.params.decimals;
   vault.tokenName = event.params.tokenName;
+  // vaultType will be set by the first event handler (AutoCompounder/WindAndCheck)
   vault.save();
 
   let context = new DataSourceContext();
@@ -64,6 +65,14 @@ export function handleUpdateVault(event: UpdateVault): void {
 
 export function handleNewDeposit(event: Deposit): void {
   log.info("New deposit detected!", []);
+  
+  // Set vault type if not already set
+  let vault = Vault.load(event.address.toHex());
+  if (vault && !vault.vaultType) {
+    vault.vaultType = "hover";
+    vault.save();
+  }
+  
   let context = dataSource.context();
 
   let vaultDeposit = new VaultDeposit(
@@ -80,6 +89,14 @@ export function handleNewDeposit(event: Deposit): void {
 
 export function handleNewWithdraw(event: Withdraw): void {
   log.info("New withdraw detected!", []);
+  
+  // Set vault type if not already set
+  let vault = Vault.load(event.address.toHex());
+  if (vault && !vault.vaultType) {
+    vault.vaultType = "hover";
+    vault.save();
+  }
+  
   let context = dataSource.context();
 
   let vaultWithdraw = new VaultWithdraw(
