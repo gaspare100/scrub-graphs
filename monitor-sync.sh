@@ -8,6 +8,13 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+# Kava RPC endpoints with fallbacks (same as scrubvault)
+KAVA_RPCS=(
+  "https://lb.nodies.app/v2/kava?apikey=82326d6c-74c4-4e98-9479-d2bdc8a7be38"
+  "https://evm.kava.io"
+  "https://kava-evm.publicnode.com"
+)
+
 echo -e "${BLUE}=== Continuous Graph Sync Monitor ===${NC}"
 echo "Press Ctrl+C to stop"
 echo ""
@@ -16,25 +23,38 @@ PREV_BLOCK=0
 PREV_TIME=$(date +%s)
 NO_PROGRESS_COUNT=0
 
+# Function to get current Kava block with RPC fallback
+get_kava_block() {
+  for rpc in "${KAVA_RPCS[@]}"; do
+    response=$(curl -s --max-time 10 "$rpc" \
+      -X POST \
+      -H "Content-Type: application/json" \
+      -H "Origin: https://scrub.money" \
+      -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}')
+    
+    block_hex=$(echo "$response" | grep -o '"result":"0x[0-9a-fA-F]*"' | grep -o '0x[0-9a-fA-F]*')
+    
+    if [ -n "$block_hex" ]; then
+      printf "%d" "$block_hex" 2>/dev/null
+      return 0
+    fi
+  done
+  return 1
+}
+
 while true; do
   CURRENT_TIME=$(date +%s)
   
   # Get current graph block
-  GRAPH_RESPONSE=$(curl -s -X POST https://subgraph.scrub.money/subgraphs/name/scrubvault-test \
+  GRAPH_RESPONSE=$(curl -s --max-time 10 -X POST https://subgraph.scrub.money/subgraphs/name/scrubvault-test \
     -H "Content-Type: application/json" \
     -d '{"query": "{ _meta { block { number } hasIndexingErrors } }"}')
   
   GRAPH_BLOCK=$(echo $GRAPH_RESPONSE | grep -o '"number":[0-9]*' | grep -o '[0-9]*')
   HAS_ERRORS=$(echo $GRAPH_RESPONSE | grep -o '"hasIndexingErrors":[a-z]*' | grep -o '[a-z]*$')
   
-  # Get current Kava chain block
-  KAVA_RESPONSE=$(curl -s https://evm.kava.io/ \
-    -X POST \
-    -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}')
-  
-  KAVA_BLOCK_HEX=$(echo $KAVA_RESPONSE | grep -o '"result":"0x[0-9a-fA-F]*"' | grep -o '0x[0-9a-fA-F]*')
-  KAVA_BLOCK=$(printf "%d" $KAVA_BLOCK_HEX 2>/dev/null)
+  # Get current Kava chain block using RPC fallback
+  KAVA_BLOCK=$(get_kava_block)
   
   if [ -z "$GRAPH_BLOCK" ] || [ -z "$KAVA_BLOCK" ]; then
     echo -e "${RED}[$(date '+%H:%M:%S')] Failed to fetch block data${NC}"
