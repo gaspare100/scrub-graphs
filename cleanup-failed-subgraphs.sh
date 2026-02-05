@@ -36,15 +36,22 @@ echo "  QmbMpbACXNGPwzGvRVHLdKRmqkP9rr3rp1VJpVaENJUuri (sgd103 - stuck)"
 echo "  QmZ2tkmb1wwPLbzPiBd6wVgokMpwZau1ywkczsEWQ7ygM7 (sgd115 - stuck)"
 echo ""
 
-# Use graph CLI to remove them
-cd ~/scrub-subgraphs
+echo -e "${GREEN}Will keep (production):${NC}"
+echo "  QmY6JkA6XV1D5CNEyUTgTcTuHhHrapA32eZT88MqxHdksR (scrubvault-test - sgd119)"
+echo "  QmYS1ZsXMeKgdxvL1fqn9GqcwJvGTspQQEHeEsxxKk9Lyc (scrubvault - sgd117)"
+echo ""
 
+# Use graph-node's admin API to remove deployments
 echo -e "${RED}Removing QmbMpbACXNGPwzGvRVHLdKRmqkP9rr3rp1VJpVaENJUuri...${NC}"
-graph remove --node http://localhost:8020/ QmbMpbACXNGPwzGvRVHLdKRmqkP9rr3rp1VJpVaENJUuri 2>&1
+curl -X POST http://localhost:8020/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "mutation { unassignDeployment(deployment: \"QmbMpbACXNGPwzGvRVHLdKRmqkP9rr3rp1VJpVaENJUuri\") { id } }"}' 2>&1
 echo ""
 
 echo -e "${RED}Removing QmZ2tkmb1wwPLbzPiBd6wVgokMpwZau1ywkczsEWQ7ygM7...${NC}"
-graph remove --node http://localhost:8020/ QmZ2tkmb1wwPLbzPiBd6wVgokMpwZau1ywkczsEWQ7ygM7 2>&1
+curl -X POST http://localhost:8020/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "mutation { unassignDeployment(deployment: \"QmZ2tkmb1wwPLbzPiBd6wVgokMpwZau1ywkczsEWQ7ygM7\") { id } }"}' 2>&1
 echo ""
 
 # Show resource usage after
