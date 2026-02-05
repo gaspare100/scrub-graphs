@@ -15,20 +15,6 @@ echo -e "${YELLOW}Current resource usage:${NC}"
 free -h | grep -E 'Mem:|Swap:'
 echo ""
 
-# Check if graph node is accessible
-echo -e "${YELLOW}Testing graph node connection...${NC}"
-response=$(curl -s -X POST http://localhost:8020/ \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"subgraph_list","params":[],"id":1}')
-
-echo "Response: $response"
-echo ""
-
-if [ -z "$response" ]; then
-  echo -e "${RED}Failed to connect to graph node. Is it running?${NC}"
-  exit 1
-fi
-
 # Define failed/old subgraphs to remove
 # These are the ones with crashed writers
 echo -e "${YELLOW}Failed subgraphs to remove:${NC}"
