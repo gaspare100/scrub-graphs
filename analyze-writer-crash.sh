@@ -36,7 +36,12 @@ curl -s -X POST http://localhost:8020/graphql \
 
 echo -e "\n10. Docker container status:"
 cd ~/scrub-subgraphs
-docker-compose ps
+docker compose ps
 
 echo -e "\n11. PostgreSQL connections:"
-docker-compose exec -T postgres psql -U graph-node -c "SELECT count(*), state FROM pg_stat_activity GROUP BY state;"
+docker compose exec -T postgres psql -U graph-node -c "SELECT count(*), state FROM pg_stat_activity GROUP BY state;"
+
+echo -e "\n12. List all deployed subgraphs:"
+curl -s -X POST http://localhost:8020/ \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"subgraph_list","params":[],"id":1}' | jq '.'
