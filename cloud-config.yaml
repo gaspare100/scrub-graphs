@@ -1,0 +1,28 @@
+#cloud-config
+users:
+  - name: root
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOTdy6R8o6f4UgroniuAHljAxF9UT0F9Fp4INgLSIztP theg
+    lock_passwd: false
+    
+chpasswd:
+  expire: false
+
+package_update: true
+package_upgrade: false
+
+packages:
+  - docker.io
+  - docker-compose
+  - nginx
+  - certbot
+  - python3-certbot-nginx
+  - jq
+  - curl
+
+runcmd:
+  - systemctl enable docker
+  - systemctl start docker
+  - useradd -m -s /bin/bash graph-user
+  - usermod -aG docker graph-user
+  - touch /root/cloud-init-complete
