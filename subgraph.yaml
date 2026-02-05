@@ -6,7 +6,7 @@ features:
   - grafting
 graft:
   base: QmZ2tkmb1wwPLbzPiBd6wVgokMpwZau1ywkczsEWQ7ygM7
-  block: 19197010
+  block: 19197009
 dataSources:
   - kind: ethereum/contract
     name: WindAndCheckAggregator
