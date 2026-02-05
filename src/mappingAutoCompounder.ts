@@ -50,6 +50,13 @@ function getOrCreateVault(vaultAddress: string): Vault {
 export function handleAutoCompounderDeposit(event: Deposit): void {
   const vaultAddress = event.address.toHex();
   
+  // Set vault type if not already set
+  let vault = getOrCreateVault(vaultAddress);
+  if (!vault.vaultType) {
+    vault.vaultType = "autocompounder";
+    vault.save();
+  }
+  
   // Skip known incompatible AutoCompounder vaults that cause ABI errors
   // These vaults were deployed with different contract versions
   const INCOMPATIBLE_VAULTS: string[] = [
@@ -70,9 +77,6 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
   const context = dataSource.context();
   const userAddress = event.params.user.toHex();
   const decimals = context.getBigInt("decimals").toI32() as u8;
-  
-  // Ensure vault exists
-  const vault = getOrCreateVault(vaultAddress);
   
   // Normalize amount by decimals for display purposes
   const normalizedAmount = event.params.amount.div(
@@ -200,19 +204,24 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
  * Updates VaultUser totals and creates transaction record
  */
 export function handleAutoCompounderWithdraw(event: Withdraw): void {
+  const vaultAddress = event.address.toHex();
+  
+  // Set vault type if not already set
+  let vault = getOrCreateVault(vaultAddress);
+  if (!vault.vaultType) {
+    vault.vaultType = "autocompounder";
+    vault.save();
+  }
+  
   log.info("AutoCompounder withdraw detected for vault {} user {} amount {}", [
-    event.address.toHex(),
+    vaultAddress,
     event.params.user.toHex(),
     event.params.amount.toString(),
   ]);
 
   const context = dataSource.context();
-  const vaultAddress = event.address.toHex();
   const userAddress = event.params.user.toHex();
   const decimals = context.getBigInt("decimals").toI32() as u8;
-  
-  // Ensure vault exists
-  const vault = getOrCreateVault(vaultAddress);
   
   // Normalize amount by decimals for display purposes
   const normalizedAmount = event.params.amount.div(
@@ -351,8 +360,11 @@ export function handleAutoCompounderCompound(event: Compound): void {
     event.params.timestamp.toString(),
   ]);
 
-  // Ensure vault exists
+  // Ensure vault exists and set type if needed
   const vault = getOrCreateVault(vaultAddress);
+  if (!vault.vaultType) {
+    vault.vaultType = "autocompounder";
+  }
   
   // Update last compound timestamp
   vault.lastCompoundTimestamp = event.params.timestamp;
@@ -384,5 +396,13 @@ export function handleAutoCompounderCompound(event: Compound): void {
  */
 export function handleNewReward(event: RewardDistribution): void {
   log.info("New reward detected for WindAndCheck vault!", []);
+  
+  // Set vault type if not already set
+  let vault = Vault.load(event.address.toHex());
+  if (vault && !vault.vaultType) {
+    vault.vaultType = "hover";
+    vault.save();
+  }
+  
   return; // Disabled - not tracking rewards currently
 }
