@@ -114,8 +114,8 @@ export function handleAutoCompounderDeposit(event: Deposit): void {
 
   // AutoCompounder contract was upgraded around block 19183000
   // Old versions have incompatible ABI - skip contract calls
-  // Multiple incompatible versions exist up to block 19190000
-  const UPGRADE_BLOCK = BigInt.fromI32(19190000);
+  // Multiple incompatible versions exist up to block 19200000
+  const UPGRADE_BLOCK = BigInt.fromI32(19200000);
   
   if (event.block.number.lt(UPGRADE_BLOCK)) {
     // Old contract version - use event-based tracking only
@@ -255,8 +255,8 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
 
   // AutoCompounder contract was upgraded around block 19183000  
   // Old versions have incompatible ABI - skip contract calls
-  // Multiple incompatible versions exist up to block 19190000
-  const UPGRADE_BLOCK = BigInt.fromI32(19190000);
+  // Multiple incompatible versions exist up to block 19200000
+  const UPGRADE_BLOCK = BigInt.fromI32(19200000);
   
   if (event.block.number.lt(UPGRADE_BLOCK)) {
     // Old contract version - use event-based tracking only
