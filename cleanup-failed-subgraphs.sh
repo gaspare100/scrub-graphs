@@ -27,17 +27,17 @@ echo "  QmY6JkA6XV1D5CNEyUTgTcTuHhHrapA32eZT88MqxHdksR (scrubvault-test - sgd119
 echo "  QmYS1ZsXMeKgdxvL1fqn9GqcwJvGTspQQEHeEsxxKk9Lyc (scrubvault - sgd117)"
 echo ""
 
-# Use graph-node's admin API to remove deployments
+# Use graph-node's admin JSON-RPC API to remove deployments
 echo -e "${RED}Removing QmbMpbACXNGPwzGvRVHLdKRmqkP9rr3rp1VJpVaENJUuri...${NC}"
-curl -X POST http://localhost:8020/graphql \
+curl -s -X POST http://localhost:8020/ \
   -H "Content-Type: application/json" \
-  -d '{"query": "mutation { unassignDeployment(deployment: \"QmbMpbACXNGPwzGvRVHLdKRmqkP9rr3rp1VJpVaENJUuri\") { id } }"}' 2>&1
+  -d '{"jsonrpc":"2.0","method":"subgraph_remove","params":{"name":"QmbMpbACXNGPwzGvRVHLdKRmqkP9rr3rp1VJpVaENJUuri"},"id":1}'
 echo ""
 
 echo -e "${RED}Removing QmZ2tkmb1wwPLbzPiBd6wVgokMpwZau1ywkczsEWQ7ygM7...${NC}"
-curl -X POST http://localhost:8020/graphql \
+curl -s -X POST http://localhost:8020/ \
   -H "Content-Type: application/json" \
-  -d '{"query": "mutation { unassignDeployment(deployment: \"QmZ2tkmb1wwPLbzPiBd6wVgokMpwZau1ywkczsEWQ7ygM7\") { id } }"}' 2>&1
+  -d '{"jsonrpc":"2.0","method":"subgraph_remove","params":{"name":"QmZ2tkmb1wwPLbzPiBd6wVgokMpwZau1ywkczsEWQ7ygM7"},"id":1}'
 echo ""
 
 # Show resource usage after
