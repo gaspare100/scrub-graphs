@@ -12,19 +12,21 @@ services:
       - ipfs
       - postgres
     environment:
-      postgres_host: postgres
-      postgres_user: graph-node
-      postgres_pass: let-me-in
-      postgres_db: graph-node
+      postgres_host: ${POSTGRES_HOST:-postgres}
+      postgres_user: ${POSTGRES_USER:-graph-node}
+      postgres_pass: ${POSTGRES_PASSWORD:-let-me-in}
+      postgres_db: ${POSTGRES_DB:-graph-node}
       ipfs: 'ipfs:5001'
-      # Change next line if you want to connect to a different JSON-RPC endpoint
-      ethereum: 'mainnet:http://host.docker.internal:8545'
+      ethereum: 'kava:https://lb.nodies.app/v1/9e49c973e9d546a48adbd48915c70f1d'
       GRAPH_LOG: info
-      # Performance tuning
+      # Performance tuning - 1000 block batch size
       GRAPH_ETHEREUM_BLOCK_BATCH_SIZE: '1000'
       GRAPH_ETHEREUM_MAX_BLOCK_RANGE_SIZE: '10000'
       GRAPH_ETHEREUM_TARGET_TRIGGERS_PER_BLOCK_RANGE: '1000'
       GRAPH_ALLOW_NON_DETERMINISTIC_IPFS: 'true'
+      # Optimize for Kava
+      GRAPH_ETHEREUM_CLEANUP_BLOCKS: 'true'
+      GRAPH_ETHEREUM_GENESIS_BLOCK_NUMBER: '0'
   ipfs:
     image: ipfs/go-ipfs:v0.4.23
     ports:

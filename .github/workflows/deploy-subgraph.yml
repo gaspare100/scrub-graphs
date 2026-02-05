@@ -1,0 +1,79 @@
+name: Deploy Subgraph
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'subgraph.yaml'
+      - 'schema.graphql'
+      - 'src/**'
+      - 'package.json'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Determine deployment target
+        id: target
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "subgraph=scrubvault" >> $GITHUB_OUTPUT
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            echo "subgraph=scrubvault-test" >> $GITHUB_OUTPUT
+            echo "environment=development" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Generate code
+        run: npm run codegen
+      
+      - name: Build subgraph
+        run: npm run build
+      
+      - name: Create subgraph (if not exists)
+        continue-on-error: true
+        run: |
+          npx graph create --node http://${{ secrets.GRAPH_NODE_IP }}:8020 ${{ steps.target.outputs.subgraph }}
+      
+      - name: Deploy subgraph
+        run: |
+          npx graph deploy \
+            --node http://${{ secrets.GRAPH_NODE_IP }}:8020 \
+            --ipfs http://${{ secrets.GRAPH_NODE_IP }}:5001 \
+            --version-label ${{ github.sha }} \
+            ${{ steps.target.outputs.subgraph }}
+      
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Complete! 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Subgraph:** ${{ steps.target.outputs.subgraph }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ steps.target.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "- Query: https://subgraph.scrub.money/subgraphs/name/${{ steps.target.outputs.subgraph }}" >> $GITHUB_STEP_SUMMARY
+          echo "- GraphQL: https://subgraph.scrub.money/subgraphs/name/${{ steps.target.outputs.subgraph }}/graphql" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "## Deployment Failed ❌" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY
