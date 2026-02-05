@@ -24,7 +24,7 @@ ps aux | grep -E "graph-node|8000" | grep -v grep
 
 echo ""
 echo "5. Checking which service is on port 8000..."
-sudo netstat -tlnp | grep 8000 || lsof -i :8000
+netstat -tln | grep 8000 || ss -tln | grep 8000
 
 echo ""
 echo "6. Checking nginx/haproxy status..."
