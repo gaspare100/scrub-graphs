@@ -47,6 +47,12 @@ export function handleUpdateVault(event: UpdateVault): void {
   log.info("Update vault detected!", []);
   let vault = Vault.load(event.params.vault.toHex());
   if (vault) {
+    // Set vaultType if not already set - UpdateVault events come from aggregator (autocompounder vaults)
+    if (!vault.vaultType) {
+      vault.vaultType = "autocompounder";
+      vault.save();
+    }
+    
     const info = new VaultInfo(
       event.params.vault.toHex() + "-" + event.block.timestamp.toString()
     );
