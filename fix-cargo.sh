@@ -3,26 +3,24 @@
 echo "=== Fixing Graph Node Cargo Issue ==="
 echo ""
 
-echo "1. Current Cargo version:"
-cargo --version
+echo "1. Current Cargo version (as graph-user):"
+su - graph-user -c "cargo --version"
 
 echo ""
-echo "2. Current Rust version:"
-rustc --version
+echo "2. Current Rust version (as graph-user):"
+su - graph-user -c "rustc --version"
 
 echo ""
-echo "3. Updating Rust and Cargo to latest..."
-rustup update stable
-rustup default stable
+echo "3. Updating Rust and Cargo to latest (as graph-user)..."
+su - graph-user -c "rustup update stable && rustup default stable"
 
 echo ""
-echo "4. New Cargo version:"
-cargo --version
+echo "4. New Cargo version (as graph-user):"
+su - graph-user -c "cargo --version"
 
 echo ""
-echo "5. Rebuilding graph node..."
-cd /home/graph-user/graph-node || exit 1
-cargo build --release
+echo "5. Rebuilding graph node (as graph-user)..."
+su - graph-user -c "cd /home/graph-user/graph-node && cargo build --release"
 
 echo ""
 echo "6. Restarting subgraph service..."
