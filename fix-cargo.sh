@@ -21,7 +21,7 @@ cargo --version
 
 echo ""
 echo "5. Rebuilding graph node..."
-cd /home/graph-user/graph-node
+cd /home/graph-user/graph-node || exit 1
 cargo build --release
 
 echo ""
