@@ -2,6 +2,7 @@ import { BigInt, dataSource, log } from "@graphprotocol/graph-ts";
 import {
     Vault,
     VaultDeposit,
+    VaultInfo,
     VaultUser,
     VaultWithdraw
 } from "../generated/schema";
@@ -350,7 +351,7 @@ export function handleAutoCompounderWithdraw(event: Withdraw): void {
 
 /**
  * Handle Compound events from AutoCompounder vaults
- * Updates lastCompoundTimestamp and fetches current vault state
+ * Updates lastCompoundTimestamp and creates VaultInfo snapshot for charts
  */
 export function handleAutoCompounderCompound(event: Compound): void {
   const vaultAddress = event.address.toHex();
@@ -381,12 +382,28 @@ export function handleAutoCompounderCompound(event: Compound): void {
     vault.tvl = totalCollateralResult.value;
   }
   
+  // Update vault APR from event
+  vault.apr = event.params.apr;
   vault.save();
+  
+  // Create VaultInfo snapshot for chart data
+  // The Compound event provides TVL (totalCollateral) and APR directly
+  const infoId = vaultAddress + "-info-" + event.params.timestamp.toString();
+  let info = new VaultInfo(infoId);
+  info.vault = vaultAddress;
+  info.timestamp = event.params.timestamp;
+  info.tvl = event.params.totalCollateral;
+  info.apr = event.params.apr;
+  info.totalSupplied = vault.totalShares ? vault.totalShares! : BigInt.fromI32(0);
+  info.totalBorrowed = BigInt.fromI32(0);
+  info.totalBorrowable = BigInt.fromI32(0);
+  info.lastCompoundTimestamp = event.params.timestamp;
+  info.save();
 
-  log.info("Updated Vault {} lastCompoundTimestamp: {} totalShares: {}", [
+  log.info("Created VaultInfo for AutoCompounder {} - TVL: {} APR: {}", [
     vaultAddress,
-    event.params.timestamp.toString(),
-    vault.totalShares ? vault.totalShares!.toString() : "null",
+    event.params.totalCollateral.toString(),
+    event.params.apr.toString(),
   ]);
 }
 
