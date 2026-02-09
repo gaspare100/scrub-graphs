@@ -473,8 +473,21 @@ export function handleRewardDistributed(event: RewardDistributedEvent): void {
   reward.apr = apr;  // Store the smoothed APR that was selected
   reward.save();
   
-  // Don't create VaultInfo on reward distribution - only on deposit/withdrawal
-  // Just update the vault entity with latest APR
+  // Create VaultInfo snapshot for chart data
+  // Charts query VaultInfo to display TVL and APR history
+  const infoId = vault.id + "-info-" + event.block.timestamp.toString();
+  let info = new VaultInfo(infoId);
+  info.vault = vault.id;
+  info.timestamp = event.block.timestamp;
+  info.tvl = event.params.newTotalVaultValue;
+  info.apr = apr;
+  info.totalSupplied = vault.totalShares ? vault.totalShares! : BigInt.fromI32(0);
+  info.totalBorrowed = BigInt.fromI32(0);
+  info.totalBorrowable = BigInt.fromI32(0);
+  info.lastCompoundTimestamp = event.block.timestamp;
+  info.save();
+  
+  // Update the vault entity with latest APR and TVL
   vault.tvl = event.params.newTotalVaultValue;
   vault.apr = apr;
   
