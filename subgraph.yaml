@@ -187,6 +187,12 @@ dataSources:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+        - event: PointsMinted(indexed address,uint256,uint256)
+          handler: handlePointsMinted
+        - event: PointsBurned(indexed address,uint256,uint256)
+          handler: handlePointsBurned
+        - event: PointsForceBurned(indexed address,indexed address,uint256,uint256)
+          handler: handlePointsForceBurned
   - kind: ethereum/contract
     name: ScrubVaultCave
     network: kava
