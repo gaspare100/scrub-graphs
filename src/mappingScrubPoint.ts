@@ -198,8 +198,8 @@ export function handleTransfer(event: TransferEvent): void {
   if (event.params.from.equals(ZERO_ADDRESS)) {
     // Mint detected (from zero address)
     
-    // Only create ScrubPointMint entity if PRE-UPGRADE
-    // Post-upgrade, handlePointsMinted will create it
+    // PRE-UPGRADE: Create entity and update holder (custom events don't exist)
+    // POST-UPGRADE: Skip everything (handlePointsMinted will do it all)
     if (isPreUpgrade) {
       const mint = new ScrubPointMint(id);
       mint.recipient = event.params.to;
@@ -214,24 +214,25 @@ export function handleTransfer(event: TransferEvent): void {
       if (stats.firstMintAt.equals(ZERO)) {
         stats.firstMintAt = timestamp;
       }
-    }
 
-    // Always update holder balance
-    let toHolder = getOrCreateHolder(event.params.to, timestamp);
-    const prevToBalance = toHolder.balance;
-    toHolder.balance = prevToBalance.plus(value);
-    toHolder.totalReceived = toHolder.totalReceived.plus(value);
-    toHolder.lastActivityAt = timestamp;
-    if (prevToBalance.equals(ZERO) && toHolder.balance.gt(ZERO)) {
-      stats.totalHolders = stats.totalHolders + 1;
+      // Update holder balance (pre-upgrade only)
+      let toHolder = getOrCreateHolder(event.params.to, timestamp);
+      const prevToBalance = toHolder.balance;
+      toHolder.balance = prevToBalance.plus(value);
+      toHolder.totalReceived = toHolder.totalReceived.plus(value);
+      toHolder.lastActivityAt = timestamp;
+      if (prevToBalance.equals(ZERO) && toHolder.balance.gt(ZERO)) {
+        stats.totalHolders = stats.totalHolders + 1;
+      }
+      toHolder.save();
     }
-    toHolder.save();
+    // Post-upgrade: handlePointsMinted will handle everything
 
   } else if (event.params.to.equals(ZERO_ADDRESS)) {
     // Burn detected (to zero address)
     
-    // Only create ScrubPointBurn entity if PRE-UPGRADE
-    // Post-upgrade, handlePointsBurned or handlePointsForceBurned will create it
+    // PRE-UPGRADE: Create entity and update holder (custom events don't exist)
+    // POST-UPGRADE: Skip everything (handlePointsBurned/ForceBurned will do it all)
     if (isPreUpgrade) {
       const burn = new ScrubPointBurn(id);
       burn.burner = event.params.from;
@@ -243,18 +244,19 @@ export function handleTransfer(event: TransferEvent): void {
       burn.save();
 
       stats.totalBurns = stats.totalBurns + 1;
-    }
 
-    // Always update holder balance
-    let fromHolder = getOrCreateHolder(event.params.from, timestamp);
-    const prevFromBalance = fromHolder.balance;
-    fromHolder.balance = prevFromBalance.minus(value);
-    fromHolder.totalBurned = fromHolder.totalBurned.plus(value);
-    fromHolder.lastActivityAt = timestamp;
-    if (prevFromBalance.gt(ZERO) && fromHolder.balance.equals(ZERO)) {
-      stats.totalHolders = stats.totalHolders - 1;
+      // Update holder balance (pre-upgrade only)
+      let fromHolder = getOrCreateHolder(event.params.from, timestamp);
+      const prevFromBalance = fromHolder.balance;
+      fromHolder.balance = prevFromBalance.minus(value);
+      fromHolder.totalBurned = fromHolder.totalBurned.plus(value);
+      fromHolder.lastActivityAt = timestamp;
+      if (prevFromBalance.gt(ZERO) && fromHolder.balance.equals(ZERO)) {
+        stats.totalHolders = stats.totalHolders - 1;
+      }
+      fromHolder.save();
     }
-    fromHolder.save();
+    // Post-upgrade: handlePointsBurned or handlePointsForceBurned will handle everything
 
   } else {
     // Standard transfer
