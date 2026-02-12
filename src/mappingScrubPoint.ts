@@ -21,7 +21,7 @@ const STATS_ID = "singleton";
 // IMPORTANT: Set this to the block number where the contract upgrade happens
 // Before this block: use Transfer events to create mint/burn entities
 // After this block: use PointsMinted/Burned events (Transfer still tracked for transfers)
-const UPGRADE_BLOCK = BigInt.fromI32(999999999); // UPDATE THIS AFTER UPGRADE!
+const UPGRADE_BLOCK = BigInt.fromI32(19341848); // ScrubPoint upgrade - Feb 12, 2026
 
 function getOrCreateStats(): ScrubPointStats {
   let stats = ScrubPointStats.load(STATS_ID);
