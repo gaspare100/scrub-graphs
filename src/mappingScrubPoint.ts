@@ -1,13 +1,9 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
-    PointsBurned as PointsBurnedEvent,
-    PointsForceBurned as PointsForceBurnedEvent,
-    PointsMinted as PointsMintedEvent,
     Transfer as TransferEvent
 } from "../generated/ScrubPoint/ScrubPoint";
 import {
     ScrubPointBurn,
-    ScrubPointForceBurn,
     ScrubPointHolder,
     ScrubPointMint,
     ScrubPointStats,
@@ -52,129 +48,73 @@ function getOrCreateHolder(address: Address, timestamp: BigInt): ScrubPointHolde
   return holder;
 }
 
-export function handlePointsMinted(event: PointsMintedEvent): void {
-  const id = event.transaction.hash.toHex() + "-" + event.logIndex.toString();
-  const timestamp = event.block.timestamp;
-  
-  let stats = getOrCreateStats();
-  
-  const mint = new ScrubPointMint(id);
-  mint.recipient = event.params.to;
-  mint.amount = event.params.amount;
-  mint.totalSupply = event.params.newTotalSupply;
-  mint.timestamp = timestamp;
-  mint.blockNumber = event.block.number;
-  mint.transactionHash = event.transaction.hash;
-  mint.save();
-
-  stats.totalMints = stats.totalMints + 1;
-  stats.totalSupply = event.params.newTotalSupply;
-  stats.lastActivityAt = timestamp;
-  if (stats.firstMintAt.equals(ZERO)) {
-    stats.firstMintAt = timestamp;
-  }
-
-  let toHolder = getOrCreateHolder(event.params.to, timestamp);
-  const prevBalance = toHolder.balance;
-  toHolder.balance = toHolder.balance.plus(event.params.amount);
-  toHolder.totalReceived = toHolder.totalReceived.plus(event.params.amount);
-  toHolder.lastActivityAt = timestamp;
-  if (prevBalance.equals(ZERO) && toHolder.balance.gt(ZERO)) {
-    stats.totalHolders = stats.totalHolders + 1;
-  }
-  toHolder.save();
-  
-  stats.save();
-}
-
-export function handlePointsBurned(event: PointsBurnedEvent): void {
-  const id = event.transaction.hash.toHex() + "-" + event.logIndex.toString();
-  const timestamp = event.block.timestamp;
-  
-  let stats = getOrCreateStats();
-  
-  const burn = new ScrubPointBurn(id);
-  burn.burner = event.params.from;
-  burn.amount = event.params.amount;
-  burn.totalSupply = event.params.newTotalSupply;
-  burn.timestamp = timestamp;
-  burn.blockNumber = event.block.number;
-  burn.transactionHash = event.transaction.hash;
-  burn.save();
-
-  stats.totalBurns = stats.totalBurns + 1;
-  stats.totalSupply = event.params.newTotalSupply;
-  stats.lastActivityAt = timestamp;
-
-  let fromHolder = getOrCreateHolder(event.params.from, timestamp);
-  const prevBalance = fromHolder.balance;
-  fromHolder.balance = fromHolder.balance.minus(event.params.amount);
-  fromHolder.totalBurned = fromHolder.totalBurned.plus(event.params.amount);
-  fromHolder.lastActivityAt = timestamp;
-  if (prevBalance.gt(ZERO) && fromHolder.balance.equals(ZERO)) {
-    stats.totalHolders = stats.totalHolders - 1;
-  }
-  fromHolder.save();
-  
-  stats.save();
-}
-
-export function handlePointsForceBurned(event: PointsForceBurnedEvent): void {
-  const id = event.transaction.hash.toHex() + "-" + event.logIndex.toString();
-  const timestamp = event.block.timestamp;
-  
-  let stats = getOrCreateStats();
-  
-  const forceBurn = new ScrubPointForceBurn(id);
-  forceBurn.from = event.params.from;
-  forceBurn.burner = event.params.burner;
-  forceBurn.amount = event.params.amount;
-  forceBurn.totalSupply = event.params.newTotalSupply;
-  forceBurn.timestamp = timestamp;
-  forceBurn.blockNumber = event.block.number;
-  forceBurn.transactionHash = event.transaction.hash;
-  forceBurn.save();
-
-  stats.totalForceBurns = stats.totalForceBurns + 1;
-  stats.totalSupply = event.params.newTotalSupply;
-  stats.lastActivityAt = timestamp;
-
-  let fromHolder = getOrCreateHolder(event.params.from, timestamp);
-  const prevBalance = fromHolder.balance;
-  fromHolder.balance = fromHolder.balance.minus(event.params.amount);
-  fromHolder.totalBurned = fromHolder.totalBurned.plus(event.params.amount);
-  fromHolder.lastActivityAt = timestamp;
-  if (prevBalance.gt(ZERO) && fromHolder.balance.equals(ZERO)) {
-    stats.totalHolders = stats.totalHolders - 1;
-  }
-  fromHolder.save();
-  
-  stats.save();
-}
-
 export function handleTransfer(event: TransferEvent): void {
   const id = event.transaction.hash.toHex() + "-" + event.logIndex.toString();
+  const timestamp = event.block.timestamp;
+  const value = event.params.value;
 
   let stats = getOrCreateStats();
   stats.totalTransfers = stats.totalTransfers + 1;
-  stats.lastActivityAt = event.block.timestamp;
+  stats.lastActivityAt = timestamp;
 
   const transfer = new ScrubPointTransfer(id);
   transfer.from = event.params.from;
   transfer.to = event.params.to;
-  transfer.amount = event.params.value;
-  transfer.timestamp = event.block.timestamp;
+  transfer.amount = value;
+  transfer.timestamp = timestamp;
   transfer.blockNumber = event.block.number;
   transfer.transactionHash = event.transaction.hash;
   transfer.save();
 
-  const value = event.params.value;
-  const timestamp = event.block.timestamp;
-
   if (event.params.from.equals(ZERO_ADDRESS)) {
-    // Mint - Skip holder updates as handlePointsMinted will handle it
+    // Mint - create ScrubPointMint entity
+    const mint = new ScrubPointMint(id);
+    mint.recipient = event.params.to;
+    mint.amount = value;
+    mint.totalSupply = ZERO; // We don't have totalSupply in Transfer event
+    mint.timestamp = timestamp;
+    mint.blockNumber = event.block.number;
+    mint.transactionHash = event.transaction.hash;
+    mint.save();
+
+    stats.totalMints = stats.totalMints + 1;
+    if (stats.firstMintAt.equals(ZERO)) {
+      stats.firstMintAt = timestamp;
+    }
+
+    let toHolder = getOrCreateHolder(event.params.to, timestamp);
+    const prevToBalance = toHolder.balance;
+    toHolder.balance = prevToBalance.plus(value);
+    toHolder.totalReceived = toHolder.totalReceived.plus(value);
+    toHolder.lastActivityAt = timestamp;
+    if (prevToBalance.equals(ZERO) && toHolder.balance.gt(ZERO)) {
+      stats.totalHolders = stats.totalHolders + 1;
+    }
+    toHolder.save();
+
   } else if (event.params.to.equals(ZERO_ADDRESS)) {
-    // Burn - Skip holder updates as handlePointsBurned or handlePointsForceBurned will handle it
+    // Burn - create ScrubPointBurn entity
+    const burn = new ScrubPointBurn(id);
+    burn.burner = event.params.from;
+    burn.amount = value;
+    burn.totalSupply = ZERO; // We don't have totalSupply in Transfer event
+    burn.timestamp = timestamp;
+    burn.blockNumber = event.block.number;
+    burn.transactionHash = event.transaction.hash;
+    burn.save();
+
+    stats.totalBurns = stats.totalBurns + 1;
+
+    let fromHolder = getOrCreateHolder(event.params.from, timestamp);
+    const prevFromBalance = fromHolder.balance;
+    fromHolder.balance = prevFromBalance.minus(value);
+    fromHolder.totalBurned = fromHolder.totalBurned.plus(value);
+    fromHolder.lastActivityAt = timestamp;
+    if (prevFromBalance.gt(ZERO) && fromHolder.balance.equals(ZERO)) {
+      stats.totalHolders = stats.totalHolders - 1;
+    }
+    fromHolder.save();
+
   } else {
     // Standard transfer
     let fromHolder = getOrCreateHolder(event.params.from, timestamp);

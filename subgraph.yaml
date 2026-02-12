@@ -1,5 +1,10 @@
 specVersion: 0.0.4
 description: ScrubInvest
+features:
+  - grafting
+graft:
+  base: QmY6JkA6XV1D5CNEyUTgTcTuHhHrapA32eZT88MqxHdksR
+  block: 19251200
 schema:
   file: ./schema.graphql
 dataSources:
@@ -182,12 +187,6 @@ dataSources:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
-        - event: PointsMinted(indexed address,uint256,uint256)
-          handler: handlePointsMinted
-        - event: PointsBurned(indexed address,uint256,uint256)
-          handler: handlePointsBurned
-        - event: PointsForceBurned(indexed address,indexed address,uint256,uint256)
-          handler: handlePointsForceBurned
   - kind: ethereum/contract
     name: ScrubVaultCave
     network: kava
@@ -269,6 +268,8 @@ templates:
       abis:
         - name: WindAndCheck
           file: ./abis/WindAndCheck.json
+        - name: AutoCompounder
+          file: ./abis/AutoCompounder.json
       eventHandlers:
         - event: Deposit(indexed address,uint256,uint256,uint256)
           handler: handleAutoCompounderDeposit
