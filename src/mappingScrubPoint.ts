@@ -83,15 +83,8 @@ export function handlePointsMinted(event: PointsMintedEvent): void {
     stats.firstMintAt = timestamp;
   }
 
-  let toHolder = getOrCreateHolder(event.params.to, timestamp);
-  const prevBalance = toHolder.balance;
-  toHolder.balance = toHolder.balance.plus(event.params.amount);
-  toHolder.totalReceived = toHolder.totalReceived.plus(event.params.amount);
-  toHolder.lastActivityAt = timestamp;
-  if (prevBalance.equals(ZERO) && toHolder.balance.gt(ZERO)) {
-    stats.totalHolders = stats.totalHolders + 1;
-  }
-  toHolder.save();
+  // NOTE: Holder balance is updated by handleTransfer, not here
+  // This prevents double counting since Transfer event is also emitted
   
   stats.save();
 }
@@ -119,15 +112,8 @@ export function handlePointsBurned(event: PointsBurnedEvent): void {
   stats.totalSupply = event.params.newTotalSupply;
   stats.lastActivityAt = timestamp;
 
-  let fromHolder = getOrCreateHolder(event.params.from, timestamp);
-  const prevBalance = fromHolder.balance;
-  fromHolder.balance = fromHolder.balance.minus(event.params.amount);
-  fromHolder.totalBurned = fromHolder.totalBurned.plus(event.params.amount);
-  fromHolder.lastActivityAt = timestamp;
-  if (prevBalance.gt(ZERO) && fromHolder.balance.equals(ZERO)) {
-    stats.totalHolders = stats.totalHolders - 1;
-  }
-  fromHolder.save();
+  // NOTE: Holder balance is updated by handleTransfer, not here
+  // This prevents double counting since Transfer event is also emitted
   
   stats.save();
 }
@@ -156,15 +142,8 @@ export function handlePointsForceBurned(event: PointsForceBurnedEvent): void {
   stats.totalSupply = event.params.newTotalSupply;
   stats.lastActivityAt = timestamp;
 
-  let fromHolder = getOrCreateHolder(event.params.from, timestamp);
-  const prevBalance = fromHolder.balance;
-  fromHolder.balance = fromHolder.balance.minus(event.params.amount);
-  fromHolder.totalBurned = fromHolder.totalBurned.plus(event.params.amount);
-  fromHolder.lastActivityAt = timestamp;
-  if (prevBalance.gt(ZERO) && fromHolder.balance.equals(ZERO)) {
-    stats.totalHolders = stats.totalHolders - 1;
-  }
-  fromHolder.save();
+  // NOTE: Holder balance is updated by handleTransfer, not here
+  // This prevents double counting since Transfer event is also emitted
   
   stats.save();
 }
