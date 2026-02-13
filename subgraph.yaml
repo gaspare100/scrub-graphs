@@ -4,7 +4,7 @@ features:
   - grafting
 graft:
   base: Qmcpfhu96v37ES49pRNMkoFvtq911SSm2BtfYcr6U5UUhW
-  block: 19253570
+  block: 19341500
 schema:
   file: ./schema.graphql
 dataSources:
@@ -166,7 +166,7 @@ dataSources:
     name: ScrubPoint
     network: kava
     source:
-      address: "0x7A48cD5f0AF2232f08066101b04E5fDd1F1aC435"
+      address: "0xa303ba76eFEc8873efC8704E9638F0b76702f9C7"
       abi: ScrubPoint
       startBlock: 19209042
     mapping:
