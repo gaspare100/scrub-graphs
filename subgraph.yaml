@@ -3,8 +3,8 @@ description: ScrubInvest
 features:
   - grafting
 graft:
-  base: Qmcpfhu96v37ES49pRNMkoFvtq911SSm2BtfYcr6U5UUhW
-  block: 18738411
+  base: QmXo587D92GutjXuGM9768NXGv8grPZYd9SJEXiMiCtcQd
+  block: 19251196
 schema:
   file: ./schema.graphql
 dataSources:
