@@ -1,5 +1,10 @@
 specVersion: 0.0.4
 description: ScrubInvest
+features:
+  - grafting
+graft:
+  base: Qmcpfhu96v37ES49pRNMkoFvtq911SSm2BtfYcr6U5UUhW
+  block: 18738411
 schema:
   file: ./schema.graphql
 dataSources:
@@ -269,6 +274,8 @@ templates:
       abis:
         - name: WindAndCheck
           file: ./abis/WindAndCheck.json
+        - name: AutoCompounder
+          file: ./abis/AutoCompounder.json
       eventHandlers:
         - event: Deposit(indexed address,uint256,uint256,uint256)
           handler: handleAutoCompounderDeposit

@@ -22,6 +22,14 @@ echo ""
 PREV_BLOCK=0
 PREV_TIME=$(date +%s)
 NO_PROGRESS_COUNT=0
+MIN_BLOCKS_PER_MIN=10
+SLOW_SYNC_COUNT=0
+LOG_FILE="/tmp/subgraph-monitor.log"
+ALERT_FILE="/tmp/subgraph-alert.log"
+
+echo "Logging to: $LOG_FILE" | tee -a "$LOG_FILE"
+echo "Minimum speed threshold: $MIN_BLOCKS_PER_MIN blocks/minute" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
 
 # Function to get current Kava block with RPC fallback
 get_kava_block() {
@@ -46,7 +54,7 @@ while true; do
   CURRENT_TIME=$(date +%s)
   
   # Get current graph block
-  GRAPH_RESPONSE=$(curl -s --max-time 10 -X POST https://subgraph.scrub.money/subgraphs/name/scrubvault-test \
+  GRAPH_RESPONSE=$(curl -s --max-time 10 -X POST https://subgraph.scrub.money/subgraphs/name/scrubvault \
     -H "Content-Type: application/json" \
     -d '{"query": "{ _meta { block { number } hasIndexingErrors } }"}')
   
@@ -64,43 +72,59 @@ while true; do
   
   # Calculate progress
   REMAINING=$((KAVA_BLOCK - GRAPH_BLOCK))
-  PROGRESS=$((GRAPH_BLOCK * 100 / KAVA_BLOCK))
+  if [ $KAVA_BLOCK -gt 0 ]; then
+    PROGRESS=$(echo "scale=2; $GRAPH_BLOCK * 100 / $KAVA_BLOCK" | bc)
+  else
+    PROGRESS=0
+  fi
   
-  # Calculate blocks processed since last check
-  TIME_DIFF=$((CURRENT_TIME - PREV_TIME))
   BLOCK_DIFF=$((GRAPH_BLOCK - PREV_BLOCK))
+  TIME_DIFF=$((CURRENT_TIME - PREV_TIME))
   
-  # Display status
-  echo -e "${BLUE}[$(date '+%H:%M:%S')]${NC} Block: ${GREEN}$GRAPH_BLOCK${NC} / $KAVA_BLOCK | Progress: ${GREEN}$PROGRESS%${NC} | Remaining: $REMAINING"
+  STATUS_LINE="[$(date '+%Y-%m-%d %H:%M:%S')] Block: $GRAPH_BLOCK / $KAVA_BLOCK | Progress: $PROGRESS% | Remaining: $REMAINING"
+  echo -e "${BLUE}$STATUS_LINE${NC}" | tee -a "$LOG_FILE"
   
   if [ $TIME_DIFF -gt 0 ] && [ $PREV_BLOCK -gt 0 ]; then
     BLOCKS_PER_MIN=$((BLOCK_DIFF * 60 / TIME_DIFF))
     
     if [ $BLOCKS_PER_MIN -gt 0 ]; then
       ETA_MIN=$((REMAINING / BLOCKS_PER_MIN))
-      echo -e "  Rate: ${GREEN}$BLOCKS_PER_MIN${NC} blocks/min | ETA: ${GREEN}~$ETA_MIN${NC} minutes"
+      RATE_LINE="  Rate: $BLOCKS_PER_MIN blocks/min | ETA: ~$ETA_MIN minutes"
+      echo -e "${GREEN}$RATE_LINE${NC}" | tee -a "$LOG_FILE"
     else
-      echo -e "  Rate: ${YELLOW}$BLOCKS_PER_MIN blocks/min${NC}"
+      RATE_LINE="  Rate: $BLOCKS_PER_MIN blocks/min"
+      echo -e "${YELLOW}$RATE_LINE${NC}" | tee -a "$LOG_FILE"
+    fi
+    
+    # Check if syncing too slow
+    if [ $BLOCKS_PER_MIN -lt $MIN_BLOCKS_PER_MIN ]; then
+      SLOW_SYNC_COUNT=$((SLOW_SYNC_COUNT + 1))
+      ALERT_MSG="🚨 ALERT: Syncing too slow!
+Time: $(date '+%Y-%m-%d %H:%M:%S')
+Current Block: $GRAPH_BLOCK
+Speed: $BLOCKS_PER_MIN blocks/minute (threshold: $MIN_BLOCKS_PER_MIN)
+Behind: $REMAINING blocks
+Slow sync count: $SLOW_SYNC_COUNT/3"
+      
+      echo -e "${RED}$ALERT_MSG${NC}" | tee -a "$LOG_FILE" "$ALERT_FILE"
+      
+      # Exit after 3 consecutive slow syncs
+      if [ $SLOW_SYNC_COUNT -ge 3 ]; then
+        FINAL_ALERT="🛑 CRITICAL: Syncing stuck for 3 consecutive checks!
+Stopping monitor - manual intervention required.
+Check logs: journalctl -u subgraph.service -n 100
+Or: docker logs graph-user-graph-node-1"
+        echo -e "${RED}$FINAL_ALERT${NC}" | tee -a "$LOG_FILE" "$ALERT_FILE"
+        exit 1
+      fi
+    else
+      SLOW_SYNC_COUNT=0
     fi
     
     # Check if no progress in last minute
     if [ $BLOCK_DIFF -eq 0 ] && [ $TIME_DIFF -ge 60 ]; then
       NO_PROGRESS_COUNT=$((NO_PROGRESS_COUNT + 1))
       echo -e "  ${YELLOW}⚠️  No progress detected for $NO_PROGRESS_COUNT check(s)${NC}"
-      
-      # Show errors after 1 minute of no progress
-      if [ $NO_PROGRESS_COUNT -ge 1 ]; then
-        echo -e "\n${RED}=== Errors in last 5 minutes ===${NC}"
-        journalctl -u subgraph.service --since "5 minutes ago" --no-pager | grep -E "ERRO|WARN|fatal|panic" | tail -20
-        echo ""
-        
-        # If no progress for 3+ checks, exit
-        if [ $NO_PROGRESS_COUNT -ge 3 ]; then
-          echo -e "${RED}No progress for 3+ minutes. Exiting.${NC}"
-          echo "Check logs: journalctl -u subgraph.service -n 100"
-          exit 1
-        fi
-      fi
     else
       NO_PROGRESS_COUNT=0
     fi
