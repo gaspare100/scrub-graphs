@@ -59,6 +59,7 @@ typings/
 
 # dotenv environment variables file
 .env
+.deploy-backups/
 
 # next.js build output
 .next

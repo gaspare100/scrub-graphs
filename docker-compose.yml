@@ -18,14 +18,15 @@ services:
       postgres_pass: let-me-in
       postgres_db: graph-node
       ipfs: 'ipfs:5001'
-      ethereum: 'kava:https://rpc.ankr.com/kava_evm/83644317debe3155dccb0f8a54aa4aa8cc996442196cf06808479567ca433b03'
+      ethereum: 'kava:https://lb.nodies.app/v1/9e49c973e9d546a48adbd48915c70f1d'
       GRAPH_LOG: info
       # Performance tuning - 1000 block batch size
       GRAPH_ETHEREUM_BLOCK_BATCH_SIZE: '1000'
-      GRAPH_ETHEREUM_MAX_BLOCK_RANGE_SIZE: '2000'
+      GRAPH_ETHEREUM_MAX_BLOCK_RANGE_SIZE: '10000'
       GRAPH_ETHEREUM_TARGET_TRIGGERS_PER_BLOCK_RANGE: '1000'
       GRAPH_ALLOW_NON_DETERMINISTIC_IPFS: 'true'
-      # Optimize for Kava
+      # Poll every 30s - subgraph does not need real-time data
+      GRAPH_ETHEREUM_POLLING_INTERVAL: '30000'
       GRAPH_ETHEREUM_CLEANUP_BLOCKS: 'true'
       GRAPH_ETHEREUM_GENESIS_BLOCK_NUMBER: '0'
   postgres:
