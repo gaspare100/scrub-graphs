@@ -12,7 +12,45 @@ import {
     WithdrawalProcessed as WithdrawalProcessedEvent,
     WithdrawalRequested as WithdrawalRequestedEvent,
 } from "../generated/ScrubDepositVault/DepositVault";
+import { ERC20 } from "../generated/ScrubDepositVault/ERC20";
 import { Vault, VaultDeposit, VaultInfo, VaultReward, VaultUser, VaultWithdraw } from "../generated/schema";
+
+function getVaultDisplayName(underlying: Bytes): string {
+  const underlyingAddress = Address.fromBytes(underlying);
+
+  if (underlyingAddress.equals(Address.zero())) {
+    return "Vault";
+  }
+
+  const token = ERC20.bind(underlyingAddress);
+  const symbolResult = token.try_symbol();
+  if (!symbolResult.reverted && symbolResult.value.length > 0) {
+    return symbolResult.value + " Vault";
+  }
+
+  const nameResult = token.try_name();
+  if (!nameResult.reverted && nameResult.value.length > 0) {
+    return nameResult.value + " Vault";
+  }
+
+  return "Vault";
+}
+
+function getVaultDecimals(underlying: Bytes): BigInt {
+  const underlyingAddress = Address.fromBytes(underlying);
+
+  if (underlyingAddress.equals(Address.zero())) {
+    return BigInt.fromI32(6);
+  }
+
+  const token = ERC20.bind(underlyingAddress);
+  const decimalsResult = token.try_decimals();
+  if (!decimalsResult.reverted) {
+    return BigInt.fromI32(decimalsResult.value);
+  }
+
+  return BigInt.fromI32(6);
+}
 
 /**
  * Get the most recent APR value for a vault.
@@ -93,8 +131,8 @@ function getOrCreateVault(vaultAddress: Address): Vault {
     vault.minWithdrawalShares = minWithdrawalSharesResult.reverted ? BigInt.fromI32(0) : minWithdrawalSharesResult.value;
     
     // Fields compatible with existing Vault schema
-    vault.decimals = BigInt.fromI32(6); // USDT decimals
-    vault.tokenName = "USDT Vault";     // Display name
+    vault.decimals = getVaultDecimals(vault.underlying);
+    vault.tokenName = getVaultDisplayName(vault.underlying);
     
     vault.save();
     
@@ -162,8 +200,8 @@ export function handleVaultInitialized(event: VaultInitializedEvent): void {
   vault.minWithdrawalShares = minWithdrawalSharesResult.reverted ? BigInt.fromI32(0) : minWithdrawalSharesResult.value;
   
   // Fields compatible with existing Vault schema
-  vault.decimals = BigInt.fromI32(6); // USDT decimals
-  vault.tokenName = "USDT Vault";     // Display name
+  vault.decimals = getVaultDecimals(vault.underlying);
+  vault.tokenName = getVaultDisplayName(vault.underlying);
   
   vault.save();
   
