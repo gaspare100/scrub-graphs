@@ -1,0 +1,8 @@
+{
+  "network": "arbitrum-one",
+  "subgraph_name": "scrubvault-arbitrum",
+  "deposit_vault_address": "0x439a923517C4DFD3F3d0ABb0C36E356D39CF3f9D",
+  "deposit_vault_start_block": "447621555",
+  "scrubpoint_address": "0x62a2D91B95b8741deB3c10d5a8378ED5Dd89764f",
+  "scrubpoint_start_block": "447621400"
+}

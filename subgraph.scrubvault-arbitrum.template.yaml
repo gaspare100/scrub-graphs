@@ -1,0 +1,78 @@
+specVersion: 0.0.4
+description: ScrubVault Arbitrum
+schema:
+  file: ../schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: ScrubDepositVault
+    network: arbitrum-one
+    source:
+      address: "{{ deposit_vault_address }}"
+      abi: DepositVault
+      startBlock: {{ deposit_vault_start_block }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ../src/mappingScrubVault.ts
+      entities:
+        - Vault
+        - VaultDeposit
+        - VaultWithdraw
+        - VaultReward
+        - VaultInfo
+      abis:
+        - name: DepositVault
+          file: ../abis/DepositVault.json
+      eventHandlers:
+        - event: VaultInitialized(indexed address,indexed address,indexed address,address,address,uint256)
+          handler: handleVaultInitialized
+        - event: DepositRequested(indexed uint256,indexed address,uint256,uint256,uint256)
+          handler: handleDepositRequested
+        - event: DepositProcessed(indexed uint256,indexed address,uint256,uint256,uint256)
+          handler: handleDepositProcessed
+        - event: WithdrawalRequested(indexed uint256,indexed address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleWithdrawalRequested
+        - event: WithdrawalProcessed(indexed uint256,indexed address,uint256,uint256,uint256,uint256,uint256)
+          handler: handleWithdrawalProcessed
+        - event: RewardDistributed(int256,uint256,uint256)
+          handler: handleRewardDistributed
+        - event: DepositFeeUpdated(uint256,uint256)
+          handler: handleDepositFeeUpdated
+        - event: WithdrawalFeeUpdated(uint256,uint256)
+          handler: handleWithdrawalFeeUpdated
+        - event: MinDepositUpdated(uint256,uint256)
+          handler: handleMinDepositUpdated
+        - event: MinWithdrawalSharesUpdated(uint256,uint256)
+          handler: handleMinWithdrawalSharesUpdated
+  - kind: ethereum/contract
+    name: ScrubPoint
+    network: arbitrum-one
+    source:
+      address: "{{ scrubpoint_address }}"
+      abi: ScrubPoint
+      startBlock: {{ scrubpoint_start_block }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ../src/mappingScrubPoint.ts
+      entities:
+        - ScrubPointMint
+        - ScrubPointBurn
+        - ScrubPointForceBurn
+        - ScrubPointTransfer
+        - ScrubPointHolder
+        - ScrubPointStats
+      abis:
+        - name: ScrubPoint
+          file: ../abis/ScrubPoint.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: PointsMinted(indexed address,uint256,uint256)
+          handler: handlePointsMinted
+        - event: PointsBurned(indexed address,uint256,uint256)
+          handler: handlePointsBurned
+        - event: PointsForceBurned(indexed address,indexed address,uint256,uint256)
+          handler: handlePointsForceBurned

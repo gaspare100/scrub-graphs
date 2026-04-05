@@ -52,6 +52,30 @@ jobs:
             --ipfs http://165.227.158.85:5001 \
             --version-label ${{ github.sha }} \
             ${{ steps.target.outputs.subgraph }}
+
+      - name: Generate Arbitrum code
+        if: github.ref == 'refs/heads/main'
+        run: npm run codegen-scrubvault-arbitrum
+
+      - name: Build Arbitrum subgraph
+        if: github.ref == 'refs/heads/main'
+        run: npm run build-scrubvault-arbitrum
+
+      - name: Create Arbitrum subgraph (if not exists)
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: |
+          npx graph create --node http://165.227.158.85:8020 scrubvault-arbitrum
+
+      - name: Deploy Arbitrum subgraph
+        if: github.ref == 'refs/heads/main'
+        run: |
+          npx graph deploy \
+            --node http://165.227.158.85:8020 \
+            --ipfs http://165.227.158.85:5001 \
+            --version-label ${{ github.sha }} \
+            scrubvault-arbitrum \
+            generated/subgraph.scrubvault-arbitrum.yaml
       
       - name: Deployment summary
         run: |
@@ -65,6 +89,10 @@ jobs:
           echo "### Endpoints" >> $GITHUB_STEP_SUMMARY
           echo "- Query: https://subgraph.scrub.money/subgraphs/name/${{ steps.target.outputs.subgraph }}" >> $GITHUB_STEP_SUMMARY
           echo "- GraphQL: https://subgraph.scrub.money/subgraphs/name/${{ steps.target.outputs.subgraph }}/graphql" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "- Query: https://subgraph.scrub.money/subgraphs/name/scrubvault-arbitrum" >> $GITHUB_STEP_SUMMARY
+            echo "- GraphQL: https://subgraph.scrub.money/subgraphs/name/scrubvault-arbitrum/graphql" >> $GITHUB_STEP_SUMMARY
+          fi
       
       - name: Notify on failure
         if: failure()

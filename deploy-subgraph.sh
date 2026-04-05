@@ -9,20 +9,23 @@ if [ -z "$1" ]; then
   echo "Examples:"
   echo "  ./deploy-subgraph.sh 192.168.1.1 scrubvault-test  # Deploy test"
   echo "  ./deploy-subgraph.sh 192.168.1.1 scrubvault       # Deploy production"
+  echo "  ./deploy-subgraph.sh 192.168.1.1 scrubvault-arbitrum # Deploy Arbitrum"
   exit 1
 fi
 
 DROPLET_IP=$1
 SUBGRAPH_NAME=${2:-scrubvault-test}
 
-# Determine environment based on subgraph name
-if [ "$SUBGRAPH_NAME" == "scrubvault" ]; then
-  ENV="production"
-  BRANCH="main"
-else
-  ENV="development"
-  BRANCH="develop"
-fi
+  case "$SUBGRAPH_NAME" in
+    scrubvault|scrubvault-arbitrum)
+      ENV="production"
+      BRANCH="main"
+      ;;
+    *)
+      ENV="development"
+      BRANCH="develop"
+      ;;
+  esac
 
 echo "========================================="
 echo "Deploying Subgraph"
@@ -46,16 +49,25 @@ if [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
 fi
 
 echo "Building subgraph..."
-npm run codegen
-npm run build
+if [ "$SUBGRAPH_NAME" == "scrubvault-arbitrum" ]; then
+  npm run codegen-scrubvault-arbitrum
+  npm run build-scrubvault-arbitrum
+else
+  npm run codegen
+  npm run build
+fi
 
 echo ""
 echo "Creating subgraph on graph node (if not exists)..."
-npx graph create --node http://$DROPLET_IP:8020 $SUBGRAPH_NAME 2>/dev/null || echo "Subgraph already exists"
+npx graph create --node http://$DROPLET_IP:8020 $SUBGRAPH_NAME || echo "Subgraph may already exist"
 
 echo ""
 echo "Deploying subgraph..."
-npx graph deploy --node http://$DROPLET_IP:8020 --ipfs http://$DROPLET_IP:5001 $SUBGRAPH_NAME
+if [ "$SUBGRAPH_NAME" == "scrubvault-arbitrum" ]; then
+  npx graph deploy --node http://$DROPLET_IP:8020 --ipfs http://$DROPLET_IP:5001 $SUBGRAPH_NAME generated/subgraph.scrubvault-arbitrum.yaml
+else
+  npx graph deploy --node http://$DROPLET_IP:8020 --ipfs http://$DROPLET_IP:5001 $SUBGRAPH_NAME
+fi
 
 echo ""
 echo "========================================="
@@ -63,6 +75,9 @@ echo "Deployment Complete! 🚀"
 echo "========================================="
 echo "Subgraph: $SUBGRAPH_NAME"
 echo "Environment: $ENV"
+if [ "$SUBGRAPH_NAME" == "scrubvault-arbitrum" ]; then
+  echo "Manifest: generated/subgraph.scrubvault-arbitrum.yaml"
+fi
 echo ""
 echo "Endpoints:"
 echo "  Query: http://$DROPLET_IP:8000/subgraphs/name/$SUBGRAPH_NAME"

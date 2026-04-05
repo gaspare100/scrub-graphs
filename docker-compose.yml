@@ -2,6 +2,17 @@ version: '3'
 services:
   graph-node:
     image: graphprotocol/graph-node
+    command:
+      - /bin/sh
+      - -lc
+      - >-
+        unset GRAPH_NODE_CONFIG &&
+        exec graph-node
+        --node-id default
+        --postgres-url postgresql://graph-node:let-me-in@postgres:5432/graph-node?sslmode=prefer
+        --ethereum-rpc kava:${KAVA_RPC_URL:-https://lb.nodies.app/v1/9e49c973e9d546a48adbd48915c70f1d}
+        --ethereum-rpc arbitrum-one:${ARBITRUM_RPC_URL:-https://arb1.arbitrum.io/rpc}
+        --ipfs ipfs:5001
     ports:
       - '8000:8000'
       - '8001:8001'
@@ -12,13 +23,6 @@ services:
       - ipfs
       - postgres
     environment:
-      postgres_host: postgres
-      postgres_port: 5432
-      postgres_user: graph-node
-      postgres_pass: let-me-in
-      postgres_db: graph-node
-      ipfs: 'ipfs:5001'
-      ethereum: 'kava:https://lb.nodies.app/v1/9e49c973e9d546a48adbd48915c70f1d'
       GRAPH_LOG: info
       # Performance tuning - 1000 block batch size
       GRAPH_ETHEREUM_BLOCK_BATCH_SIZE: '1000'
