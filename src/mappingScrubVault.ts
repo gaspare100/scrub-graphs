@@ -397,32 +397,50 @@ export function handleRewardDistributed(event: RewardDistributedEvent): void {
   
   const secondsInYear = BigInt.fromI32(31536000); // 365 * 24 * 60 * 60
   const thirtyDays = BigInt.fromI32(2592000);     // 30 * 24 * 60 * 60
-  
-  // Get the most recent VaultInfo to calculate time delta for instant APR
-  const previousInfos = vault.infos.load();
-  if (previousInfos.length > 0) {
-    const lastInfo = previousInfos[previousInfos.length - 1];
-    const timeDelta = event.block.timestamp.minus(lastInfo.timestamp);
-    
-    // Calculate instant APR (annualized from this single reward)
-    const oldTvl = lastInfo.tvl;
-    if (oldTvl.gt(BigInt.fromI32(0)) && timeDelta.gt(BigInt.fromI32(0))) {
-      // instantAPR = (rewardAmount / oldTVL) * (secondsInYear / timeDelta) * 10000
-      instantAPR = event.params.rewardAmount
-        .times(secondsInYear)
-        .times(BigInt.fromI32(10000))
-        .div(oldTvl)
-        .div(timeDelta);
+
+  // Load all past rewards up-front (used for instantAPR, rolling, and total calculations)
+  const allRewards = vault.rewards.load();
+
+  // Pre-reward TVL is exact and deterministic: post-reward TVL minus this reward amount.
+  // Do NOT use vault.infos.load()[last].tvl — VaultInfo entity IDs for deposit events use
+  // "{vault}-{timestamp}" while reward events use "{vault}-info-{timestamp}". The Graph sorts
+  // derived relations alphabetically by entity ID, so reward-info entries (letter "i") always
+  // sort AFTER digit-only deposit entries, making [last] the stale first-reward VaultInfo
+  // instead of the most recent deposit VaultInfo, resulting in a wildly wrong TVL denominator.
+  const oldTvl = event.params.newTotalVaultValue.minus(event.params.rewardAmount);
+
+  // Time delta for instant APR: time since the last reward.
+  // For the very first reward (no prior rewards), fall back to the earliest VaultInfo timestamp
+  // (the initial deposit), found by scanning for the minimum timestamp to avoid sort-order bugs.
+  let instantTimeDelta = BigInt.fromI32(0);
+  if (allRewards.length > 0) {
+    instantTimeDelta = event.block.timestamp.minus(allRewards[allRewards.length - 1].timestamp);
+  } else {
+    const allInfos = vault.infos.load();
+    let earliestTimestamp = event.block.timestamp;
+    for (let i = 0; i < allInfos.length; i++) {
+      if (allInfos[i].timestamp.lt(earliestTimestamp)) {
+        earliestTimestamp = allInfos[i].timestamp;
+      }
     }
+    instantTimeDelta = event.block.timestamp.minus(earliestTimestamp);
+  }
+
+  // Calculate instant APR (annualized from this single reward)
+  if (oldTvl.gt(BigInt.fromI32(0)) && instantTimeDelta.gt(BigInt.fromI32(0))) {
+    // instantAPR = (rewardAmount / oldTVL) * (secondsInYear / timeDelta) * 10000
+    instantAPR = event.params.rewardAmount
+      .times(secondsInYear)
+      .times(BigInt.fromI32(10000))
+      .div(oldTvl)
+      .div(instantTimeDelta);
   }
   
   // Calculate rolling 30-day APR (more stable)
   const thirtyDaysAgo = event.block.timestamp.minus(thirtyDays);
-  const allRewards = vault.rewards.load();
   
   let recentRewards = BigInt.fromI32(0);
   let oldestRecentTimestamp = event.block.timestamp;
-  let earliestTVL = event.params.newTotalVaultValue;
   
   // Sum all rewards from last 30 days
   for (let i = allRewards.length - 1; i >= 0; i--) {
@@ -430,62 +448,42 @@ export function handleRewardDistributed(event: RewardDistributedEvent): void {
     if (reward.timestamp.ge(thirtyDaysAgo)) {
       recentRewards = recentRewards.plus(reward.reward);
       oldestRecentTimestamp = reward.timestamp;
-      
-      // Try to get TVL from that time period
-      const rewardInfos = vault.infos.load();
-      for (let j = 0; j < rewardInfos.length; j++) {
-        if (rewardInfos[j].timestamp.equals(reward.timestamp)) {
-          earliestTVL = rewardInfos[j].tvl;
-          break;
-        }
-      }
     }
   }
   
   // Add current reward
   recentRewards = recentRewards.plus(event.params.rewardAmount);
   
-  // Calculate rolling APR if we have rewards in the period
+  // Calculate rolling APR using pre-reward TVL as denominator
   const rollingTimeDelta = event.block.timestamp.minus(oldestRecentTimestamp);
-  if (earliestTVL.gt(BigInt.fromI32(0)) && rollingTimeDelta.gt(BigInt.fromI32(0))) {
-    // rollingAPR = (totalRecentRewards / avgTVL) * (secondsInYear / timePeriod) * 10000
-    const avgTVL = earliestTVL.plus(event.params.newTotalVaultValue).div(BigInt.fromI32(2));
+  if (oldTvl.gt(BigInt.fromI32(0)) && rollingTimeDelta.gt(BigInt.fromI32(0))) {
+    // rollingAPR = (totalRecentRewards / TVL) * (secondsInYear / timePeriod) * 10000
     rollingAPR = recentRewards
       .times(secondsInYear)
       .times(BigInt.fromI32(10000))
-      .div(avgTVL)
+      .div(oldTvl)
       .div(rollingTimeDelta);
   }
   
   // Calculate total APR since inception
   let totalRewards = BigInt.fromI32(0);
   let firstTimestamp = event.block.timestamp;
-  let firstTVL = event.params.newTotalVaultValue;
   
   for (let i = 0; i < allRewards.length; i++) {
     totalRewards = totalRewards.plus(allRewards[i].reward);
     if (i === 0) {
       firstTimestamp = allRewards[i].timestamp;
-      // Try to get first TVL
-      const firstInfos = vault.infos.load();
-      for (let j = 0; j < firstInfos.length; j++) {
-        if (firstInfos[j].timestamp.equals(firstTimestamp)) {
-          firstTVL = firstInfos[j].tvl;
-          break;
-        }
-      }
     }
   }
   
   totalRewards = totalRewards.plus(event.params.rewardAmount);
   
   const totalTimeDelta = event.block.timestamp.minus(firstTimestamp);
-  if (firstTVL.gt(BigInt.fromI32(0)) && totalTimeDelta.gt(BigInt.fromI32(0))) {
-    const avgTotalTVL = firstTVL.plus(event.params.newTotalVaultValue).div(BigInt.fromI32(2));
+  if (oldTvl.gt(BigInt.fromI32(0)) && totalTimeDelta.gt(BigInt.fromI32(0))) {
     totalAPR = totalRewards
       .times(secondsInYear)
       .times(BigInt.fromI32(10000))
-      .div(avgTotalTVL)
+      .div(oldTvl)
       .div(totalTimeDelta);
   }
   
