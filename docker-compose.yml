@@ -11,7 +11,8 @@ services:
         --node-id default
         --postgres-url postgresql://graph-node:let-me-in@postgres:5432/graph-node?sslmode=prefer
         --ethereum-rpc kava:${KAVA_RPC_URL:-https://lb.nodies.app/v1/9e49c973e9d546a48adbd48915c70f1d}
-        --ethereum-rpc arbitrum-one:${ARBITRUM_RPC_URL:-https://arb1.arbitrum.io/rpc}
+        --ethereum-rpc hardhat:${HARDHAT_RPC_URL:-http://host.docker.internal:8545}
+        --ethereum-rpc arbitrum-one:${ARBITRUM_RPC_URL:-https://rpc.ankr.com/arbitrum/83644317debe3155dccb0f8a54aa4aa8cc996442196cf06808479567ca433b03}
         --ipfs ipfs:5001
     ports:
       - '8000:8000'
@@ -24,19 +25,19 @@ services:
       - postgres
     environment:
       GRAPH_LOG: info
-      # Performance tuning - 1000 block batch size
-      GRAPH_ETHEREUM_BLOCK_BATCH_SIZE: '1000'
-      GRAPH_ETHEREUM_MAX_BLOCK_RANGE_SIZE: '10000'
-      GRAPH_ETHEREUM_TARGET_TRIGGERS_PER_BLOCK_RANGE: '1000'
+      # Performance tuning - aggressive catch-up batch sizes
+      GRAPH_ETHEREUM_BLOCK_BATCH_SIZE: '2000'
+      GRAPH_ETHEREUM_MAX_BLOCK_RANGE_SIZE: '100000'
+      GRAPH_ETHEREUM_TARGET_TRIGGERS_PER_BLOCK_RANGE: '2000'
       GRAPH_ALLOW_NON_DETERMINISTIC_IPFS: 'true'
-      # Poll every 30s - subgraph does not need real-time data
-      GRAPH_ETHEREUM_POLLING_INTERVAL: '30000'
+      # Poll every 10s while catching up
+      GRAPH_ETHEREUM_POLLING_INTERVAL: '10000'
       GRAPH_ETHEREUM_CLEANUP_BLOCKS: 'true'
       GRAPH_ETHEREUM_GENESIS_BLOCK_NUMBER: '0'
   postgres:
     image: postgres:14-alpine
     ports:
-      - '5432:5432'
+      - '${SCRUB_GRAPHS_POSTGRES_HOST_PORT:-5433}:5432'
     command: ["postgres", "-cshared_preload_libraries=pg_stat_statements"]
     environment:
       POSTGRES_USER: graph-node
