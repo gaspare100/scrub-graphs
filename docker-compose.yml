@@ -6,14 +6,11 @@ services:
       - /bin/sh
       - -lc
       - >-
-        unset GRAPH_NODE_CONFIG &&
         exec graph-node
         --node-id default
-        --postgres-url postgresql://graph-node:let-me-in@postgres:5432/graph-node?sslmode=prefer
-        --ethereum-rpc kava:${KAVA_RPC_URL:-https://lb.nodies.app/v1/9e49c973e9d546a48adbd48915c70f1d}
-        --ethereum-rpc hardhat:${HARDHAT_RPC_URL:-http://host.docker.internal:8545}
-        --ethereum-rpc arbitrum-one:${ARBITRUM_RPC_URL:-https://arb1.arbitrum.io/rpc}
         --ipfs ipfs:5001
+    volumes:
+      - ./config.toml:/config/config.toml:ro
     ports:
       - '8000:8000'
       - '8001:8001'
@@ -25,13 +22,15 @@ services:
       - postgres
     environment:
       GRAPH_LOG: info
-      # Performance tuning - aggressive catch-up batch sizes
+      GRAPH_NODE_CONFIG: /config/config.toml
+      # RPC URLs — used by config.toml for env-var substitution
+      KAVA_RPC_URL: ${KAVA_RPC_URL:-https://lb.nodies.app/v1/9e49c973e9d546a48adbd48915c70f1d}
+      ARBITRUM_RPC_URL: ${ARBITRUM_RPC_URL:-https://arb1.arbitrum.io/rpc}
+      # Performance tuning — batch sizes (global fallbacks)
       GRAPH_ETHEREUM_BLOCK_BATCH_SIZE: '2000'
       GRAPH_ETHEREUM_MAX_BLOCK_RANGE_SIZE: '100000'
       GRAPH_ETHEREUM_TARGET_TRIGGERS_PER_BLOCK_RANGE: '2000'
       GRAPH_ALLOW_NON_DETERMINISTIC_IPFS: 'true'
-      # Poll every 10s while catching up
-      GRAPH_ETHEREUM_POLLING_INTERVAL: '10000'
       GRAPH_ETHEREUM_CLEANUP_BLOCKS: 'true'
       GRAPH_ETHEREUM_GENESIS_BLOCK_NUMBER: '0'
   postgres:

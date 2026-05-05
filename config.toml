@@ -1,0 +1,35 @@
+# graph-node per-chain configuration
+# Allows setting different polling intervals per chain:
+#   - kava: 10s (6s block time, need responsive syncing)
+#   - arbitrum-one: 60s (0.25s block time, batching handles new blocks; reduces RPC calls by 6x)
+#
+# Override RPC URLs via env vars: KAVA_RPC_URL, ARBITRUM_RPC_URL
+
+[store]
+[store.primary]
+connection = "postgresql://graph-node:let-me-in@postgres:5432/graph-node?sslmode=prefer"
+weight = 1
+
+[chains]
+ingestor = "default"
+
+[chains.kava]
+shard = "primary"
+polling_interval = 10000
+provider = [
+  { label = "kava-rpc-0", url = "${KAVA_RPC_URL}", features = [] }
+]
+
+[chains.arbitrum-one]
+shard = "primary"
+# Poll every 60s — at ~4 Arbitrum blocks/sec this catches ~240 new blocks per poll.
+# MAX_BLOCK_RANGE_SIZE handles them in one batch request.
+polling_interval = 60000
+provider = [
+  { label = "arbitrum-rpc-0", url = "${ARBITRUM_RPC_URL}", features = [] }
+]
+
+[deployment]
+[[deployment.rule]]
+shard = "primary"
+indexers = ["default"]
