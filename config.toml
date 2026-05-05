@@ -16,16 +16,15 @@ ingestor = "default"
 
 [chains.kava]
 shard = "primary"
-polling_interval = 10000
+polling_interval = 24000
 provider = [
   { label = "kava-rpc-0", url = "${KAVA_RPC_URL}", features = ["archive"] }
 ]
 
 [chains.arbitrum-one]
 shard = "primary"
-# Poll every 60s — at ~4 Arbitrum blocks/sec this catches ~240 new blocks per poll.
-# MAX_BLOCK_RANGE_SIZE handles them in one batch request.
-polling_interval = 60000
+# Poll every 24s — at ~4 Arbitrum blocks/sec this catches ~96 new blocks per poll.
+polling_interval = 24000
 provider = [
   { label = "arbitrum-rpc-0", url = "${ARBITRUM_RPC_URL}", features = ["archive"] }
 ]
