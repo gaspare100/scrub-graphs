@@ -9,6 +9,7 @@
 [store.primary]
 connection = "postgresql://graph-node:let-me-in@postgres:5432/graph-node?sslmode=prefer"
 weight = 1
+pool_size = 10
 
 [chains]
 ingestor = "default"
@@ -17,7 +18,7 @@ ingestor = "default"
 shard = "primary"
 polling_interval = 10000
 provider = [
-  { label = "kava-rpc-0", url = "${KAVA_RPC_URL}", features = [] }
+  { label = "kava-rpc-0", url = "${KAVA_RPC_URL}", features = ["archive"] }
 ]
 
 [chains.arbitrum-one]
@@ -26,7 +27,7 @@ shard = "primary"
 # MAX_BLOCK_RANGE_SIZE handles them in one batch request.
 polling_interval = 60000
 provider = [
-  { label = "arbitrum-rpc-0", url = "${ARBITRUM_RPC_URL}", features = [] }
+  { label = "arbitrum-rpc-0", url = "${ARBITRUM_RPC_URL}", features = ["archive"] }
 ]
 
 [deployment]
