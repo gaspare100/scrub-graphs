@@ -74,8 +74,99 @@ function getLatestAPR(vaultId: string): BigInt {
       return info.apr;
     }
   }
-  
+
   return BigInt.fromI32(0);
+}
+
+/**
+ * 10^n as a BigInt (n >= 0).
+ */
+function pow10(n: i32): BigInt {
+  let result = BigInt.fromI32(1);
+  const ten = BigInt.fromI32(10);
+  for (let i = 0; i < n; i++) {
+    result = result.times(ten);
+  }
+  return result;
+}
+
+/**
+ * Most recent VaultInfo.tvl that is > 0 for a vault, selected by the maximum
+ * timestamp. VaultInfo entity IDs are NOT timestamp-sortable ("{vault}-{ts}" vs
+ * "{vault}-info-{ts}"), so we scan and pick the max timestamp explicitly rather
+ * than trusting derived-relation order.
+ */
+function getLatestTvl(vaultId: string): BigInt {
+  let vault = Vault.load(vaultId);
+  if (!vault) {
+    return BigInt.zero();
+  }
+
+  const infos = vault.infos.load();
+  let bestTimestamp = BigInt.zero();
+  let bestTvl = BigInt.zero();
+  let found = false;
+  for (let i = 0; i < infos.length; i++) {
+    const info = infos[i];
+    if (info.tvl.gt(BigInt.zero()) && (!found || info.timestamp.gt(bestTimestamp))) {
+      bestTimestamp = info.timestamp;
+      bestTvl = info.tvl;
+      found = true;
+    }
+  }
+  return bestTvl;
+}
+
+/**
+ * Resolve the vault-level TVL resiliently. A successful contract call always
+ * wins (preserves prior behaviour exactly). On revert we must NEVER write 0 or
+ * a bogus value: carry forward the last known vault.tvl, else fall back to the
+ * freshest non-zero VaultInfo snapshot (which is derived from event params and
+ * is robust to RPC reverts), else as a last resort the provided value.
+ */
+function resolveVaultTvl(reverted: boolean, value: BigInt, vault: Vault): BigInt {
+  if (!reverted) {
+    return value;
+  }
+  const existing = vault.tvl ? (vault.tvl as BigInt) : BigInt.zero();
+  if (existing.gt(BigInt.zero())) {
+    return existing;
+  }
+  const latest = getLatestTvl(vault.id);
+  if (latest.gt(BigInt.zero())) {
+    return latest;
+  }
+  return value;
+}
+
+/**
+ * Resolve the vault-level shareValue resiliently. A successful, meaningful
+ * contract value wins. Otherwise carry forward the last non-zero shareValue,
+ * else derive it from tvl/totalSupplied (shareValue is 1e18-scaled:
+ * shareValue = tvl * 10^(36 - decimals) / totalSupplied), else default to 1.0.
+ */
+function resolveShareValue(
+  reverted: boolean,
+  value: BigInt,
+  vault: Vault,
+  tvl: BigInt,
+  totalSupplied: BigInt,
+): BigInt {
+  if (!reverted && value.gt(BigInt.zero())) {
+    return value;
+  }
+  const existing = vault.shareValue ? (vault.shareValue as BigInt) : BigInt.zero();
+  if (existing.gt(BigInt.zero())) {
+    return existing;
+  }
+  if (totalSupplied.gt(BigInt.zero()) && tvl.gt(BigInt.zero())) {
+    const decimals = vault.decimals.toI32();
+    const exponent = 36 - decimals;
+    if (exponent >= 0) {
+      return tvl.times(pow10(exponent)).div(totalSupplied);
+    }
+  }
+  return BigInt.fromString("1000000000000000000");
 }
 
 /**
@@ -164,24 +255,35 @@ function getOrCreateVaultUser(vaultId: string, userAddress: Address): VaultUser 
 
 export function handleVaultInitialized(event: VaultInitializedEvent): void {
   log.info("ScrubVault initialized!", []);
-  
-  let vault = new Vault(event.params.vault.toHex());
-  
+
+  // VaultInitialized re-fires when an upgradeable vault is re-initialized.
+  // Do NOT blow away an existing entity's accumulators (totalShares/shareValue/
+  // tvl/totalUsers) with a fresh `new Vault()` — only initialize counters when
+  // the vault is genuinely new. Config/immutable fields are always refreshed.
+  const vaultId = event.params.vault.toHex();
+  let vault = Vault.load(vaultId);
+  const isNew = vault == null;
+  if (!vault) {
+    vault = new Vault(vaultId);
+  }
+
   // Set vault type to distinguish from Hover vaults
   vault.vaultType = "scrub";
-  
+
   // ScrubVault specific fields
   vault.underlying = event.params.stablecoin;
   vault.shareToken = event.params.shareToken;
   vault.strategy = event.params.strategy;
   vault.treasury = event.params.treasury;
-  
-  // Initialize counters
-  vault.totalShares = BigInt.fromI32(0);
-  vault.shareValue = BigInt.fromI32(0);
-  vault.totalUsers = BigInt.fromI32(0);
-  vault.totalPendingWithdrawalShares = BigInt.fromI32(0);
-  vault.paused = false;
+
+  // Initialize counters only for a brand-new vault (preserve on re-init)
+  if (isNew) {
+    vault.totalShares = BigInt.fromI32(0);
+    vault.shareValue = BigInt.fromI32(0);
+    vault.totalUsers = BigInt.fromI32(0);
+    vault.totalPendingWithdrawalShares = BigInt.fromI32(0);
+    vault.paused = false;
+  }
   
   // Initialize configurable fees and limits from contract
   let contract = DepositVaultContract.bind(event.params.vault);
@@ -246,42 +348,62 @@ export function handleDepositProcessed(event: DepositProcessedEvent): void {
     deposit.sharesMinted = event.params.sharesMinted;
     deposit.processedAt = event.params.timestamp;
     deposit.save();
-    
-    // Update user stats
-    let vaultUser = getOrCreateVaultUser(vault.id, event.params.user);
-    const isNewUser = vaultUser.totalDeposited.equals(BigInt.fromI32(0));
-    
-    vaultUser.shareBalance = vaultUser.shareBalance.plus(event.params.sharesMinted);
+  }
+
+  // Always update user stats regardless of whether the DepositRequested entity was indexed.
+  // If the entity is missing (e.g. due to a subgraph gap), fall back to event.params.usdAmount
+  // so that subsequent deposits are never silently ignored.
+  let vaultUser = getOrCreateVaultUser(vault.id, event.params.user);
+  const isNewUser = vaultUser.totalDeposited.equals(BigInt.fromI32(0));
+
+  vaultUser.shareBalance = vaultUser.shareBalance.plus(event.params.sharesMinted);
+  if (!vaultUser.pendingDepositCount.equals(BigInt.fromI32(0))) {
     vaultUser.pendingDepositCount = vaultUser.pendingDepositCount.minus(BigInt.fromI32(1));
-    // Add to totalDeposited when deposit is processed (gross amount = amount + fee)
+  }
+
+  if (deposit) {
+    // Use gross amount (net + fee) stored from the DepositRequested event
     const depositAmount = deposit.amount ? deposit.amount as BigInt : BigInt.fromI32(0);
     const depositFee = deposit.fee ? deposit.fee as BigInt : BigInt.fromI32(0);
     vaultUser.totalDeposited = vaultUser.totalDeposited.plus(depositAmount).plus(depositFee);
-    vaultUser.lastInteractionTimestamp = event.params.timestamp;
-    vaultUser.save();
-    
-    // Increment totalUsers if this is the user's first deposit
-    if (isNewUser) {
-      const currentTotalUsers = vault.totalUsers ? vault.totalUsers as BigInt : BigInt.fromI32(0);
-      vault.totalUsers = currentTotalUsers.plus(BigInt.fromI32(1));
-    }
+  } else {
+    // Fallback: DepositRequested was not indexed; use the net usdAmount from this event
+    vaultUser.totalDeposited = vaultUser.totalDeposited.plus(event.params.usdAmount);
+  }
+
+  vaultUser.lastInteractionTimestamp = event.params.timestamp;
+  vaultUser.save();
+
+  if (isNewUser) {
+    const currentTotalUsers = vault.totalUsers ? vault.totalUsers as BigInt : BigInt.fromI32(0);
+    vault.totalUsers = currentTotalUsers.plus(BigInt.fromI32(1));
   }
   
   // Update vault totals (initialize if null for backward compatibility)
   const currentShares = vault.totalShares ? vault.totalShares as BigInt : BigInt.fromI32(0);
   vault.totalShares = currentShares.plus(event.params.sharesMinted);
   
-  // Update shareValue from contract
+  // Fetch shareValue + TVL from contract. On RPC revert, do NOT write 0/bogus
+  // values — resolve against the last known good vault state / VaultInfo.
   let contract = DepositVaultContract.bind(event.address);
   let shareValueResult = contract.try_shareValue();
-  if (!shareValueResult.reverted) {
-    vault.shareValue = shareValueResult.value;
-  }
-  
-  // Fetch current total vault value (TVL) from contract for accurate tracking
   let tvlResult = contract.try_totalVaultValue();
-  const currentTVL = tvlResult.reverted ? event.params.usdAmount : tvlResult.value;
+
+  const currentTVL = resolveVaultTvl(
+    tvlResult.reverted,
+    tvlResult.reverted ? BigInt.zero() : tvlResult.value,
+    vault,
+  );
   vault.tvl = currentTVL; // Update vault-level TVL field
+
+  const suppliedAfterDeposit = vault.totalShares ? vault.totalShares as BigInt : BigInt.zero();
+  vault.shareValue = resolveShareValue(
+    shareValueResult.reverted,
+    shareValueResult.reverted ? BigInt.zero() : shareValueResult.value,
+    vault,
+    currentTVL,
+    suppliedAfterDeposit,
+  );
   
   // Update VaultInfo for charts - carry forward last known APR (don't reset to 0)
   const infoId = vault.id + "-" + event.params.timestamp.toString();
@@ -359,23 +481,33 @@ export function handleWithdrawalProcessed(event: WithdrawalProcessedEvent): void
   vault.totalShares = currentShares.minus(event.params.shares);
   vault.totalPendingWithdrawalShares = currentPendingShares.minus(event.params.shares);
   
-  // Update shareValue from contract
+  // Fetch shareValue + TVL from contract. On RPC revert, do NOT write 0 — that
+  // is the bug that zeroed vault.tvl AND corrupted the VaultInfo snapshot.
   let contract = DepositVaultContract.bind(event.address);
   let shareValueResult = contract.try_shareValue();
-  if (!shareValueResult.reverted) {
-    vault.shareValue = shareValueResult.value;
-  }
-  
+  let tvlResult = contract.try_totalVaultValue();
+
   // Create VaultInfo snapshot for withdrawal (track TVL changes)
   const infoId = vault.id + "-" + event.params.timestamp.toString();
   let info = new VaultInfo(infoId);
   info.vault = vault.id;
   info.timestamp = event.params.timestamp;
-  
-  // Get current TVL from contract
-  let tvlResult = contract.try_totalVaultValue();
-  info.tvl = tvlResult.reverted ? BigInt.fromI32(0) : tvlResult.value;
-  vault.tvl = info.tvl; // Update vault-level TVL field
+
+  const suppliedAfterWithdrawal = currentShares.minus(event.params.shares);
+  const currentTVL = resolveVaultTvl(
+    tvlResult.reverted,
+    tvlResult.reverted ? BigInt.zero() : tvlResult.value,
+    vault,
+  );
+  info.tvl = currentTVL;
+  vault.tvl = currentTVL; // Update vault-level TVL field
+  vault.shareValue = resolveShareValue(
+    shareValueResult.reverted,
+    shareValueResult.reverted ? BigInt.zero() : shareValueResult.value,
+    vault,
+    currentTVL,
+    suppliedAfterWithdrawal,
+  );
   
   info.apr = getLatestAPR(vault.id);  // Carry forward last known APR instead of resetting to 0
   info.totalSupplied = currentShares.minus(event.params.shares);  // Use updated shares
@@ -515,7 +647,9 @@ export function handleRewardDistributed(event: RewardDistributedEvent): void {
   let info = new VaultInfo(infoId);
   info.vault = vault.id;
   info.timestamp = event.block.timestamp;
-  info.tvl = event.params.newTotalVaultValue;
+  info.tvl = event.params.newTotalVaultValue.gt(BigInt.zero())
+    ? event.params.newTotalVaultValue
+    : getLatestTvl(vault.id);
   info.apr = apr;
   info.totalSupplied = vault.totalShares ? vault.totalShares! : BigInt.fromI32(0);
   info.totalBorrowed = BigInt.fromI32(0);
@@ -523,16 +657,25 @@ export function handleRewardDistributed(event: RewardDistributedEvent): void {
   info.lastCompoundTimestamp = event.block.timestamp;
   info.save();
   
-  // Update the vault entity with latest APR and TVL
-  vault.tvl = event.params.newTotalVaultValue;
+  // Update the vault entity with latest APR and TVL. newTotalVaultValue comes
+  // from the event (no RPC), but guard against a 0 so we never regress tvl.
+  const resolvedTvl = event.params.newTotalVaultValue.gt(BigInt.zero())
+    ? event.params.newTotalVaultValue
+    : resolveVaultTvl(true, BigInt.zero(), vault);
+  vault.tvl = resolvedTvl;
   vault.apr = apr;
-  
-  // Update shareValue from contract after reward distribution
+
+  // shareValue from contract; on revert carry forward / derive (never leave 0).
   let contract = DepositVaultContract.bind(event.address);
   let shareValueResult = contract.try_shareValue();
-  if (!shareValueResult.reverted) {
-    vault.shareValue = shareValueResult.value;
-  }
+  const suppliedForShareValue = vault.totalShares ? vault.totalShares as BigInt : BigInt.zero();
+  vault.shareValue = resolveShareValue(
+    shareValueResult.reverted,
+    shareValueResult.reverted ? BigInt.zero() : shareValueResult.value,
+    vault,
+    resolvedTvl,
+    suppliedForShareValue,
+  );
   vault.save();
 }
 
